@@ -18,21 +18,28 @@ const vertexShader = `
   }
 `;
 
-// Duotone the satellite texture by luminance into a near-black base and the
-// app's cyan accent, so the globe reads as part of the same design system as
-// the HUD panels instead of clashing with its own color language.
+// Land brightness is driven by the land/ocean mask (so every country reads
+// clearly, regardless of how dark its terrain photographs) with the satellite
+// photo layered in only as a subtle relief modulation on top of that floor.
 const fragmentShader = `
   uniform sampler2D map;
+  uniform sampler2D landMask;
   uniform vec3 darkColor;
   uniform vec3 brightColor;
   uniform float contrast;
   varying vec2 vUv;
   varying vec3 vNormal;
   void main() {
-    vec3 color = texture2D(map, vUv).rgb;
-    float luma = dot(color, vec3(0.299, 0.587, 0.114));
-    float shaped = pow(clamp(luma, 0.0, 1.0), contrast);
-    vec3 duotone = mix(darkColor, brightColor, shaped);
+    float oceanAmount = texture2D(landMask, vUv).r;
+
+    vec3 photo = texture2D(map, vUv).rgb;
+    float luma = dot(photo, vec3(0.299, 0.587, 0.114));
+    float relief = pow(clamp(luma, 0.0, 1.0), contrast);
+    float landBrightness = mix(0.7, 1.2, relief);
+
+    vec3 land = brightColor * landBrightness;
+    vec3 duotone = mix(land, darkColor, oceanAmount);
+
     float facing = max(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)), 0.0);
     float shade = 0.65 + 0.35 * facing;
     gl_FragColor = vec4(duotone * shade, 1.0);
@@ -41,6 +48,7 @@ const fragmentShader = `
 
 export default function Earth({ onPointerOver, onPointerOut }: EarthProps) {
   const map = useLoader(THREE.TextureLoader, "/textures/earth_atmos_2048.jpg");
+  const landMask = useLoader(THREE.TextureLoader, "/textures/earth_specular_2048.jpg");
 
   return (
     <mesh onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
@@ -50,6 +58,7 @@ export default function Earth({ onPointerOver, onPointerOut }: EarthProps) {
         fragmentShader={fragmentShader}
         uniforms={{
           map: { value: map },
+          landMask: { value: landMask },
           darkColor: { value: new THREE.Color("#050A0F") },
           brightColor: { value: new THREE.Color("#00D4FF") },
           contrast: { value: 1.6 },
