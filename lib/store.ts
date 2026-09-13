@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { ChargingStation, LayerState, ViewLevel } from "./types";
 
+type DataStatus = "idle" | "loading" | "ready" | "error";
+
 type EvoraStore = {
   viewLevel: ViewLevel;
   selectedCountry: string | null;
@@ -8,14 +10,19 @@ type EvoraStore = {
   layers: LayerState;
   stationPanelOpen: boolean;
 
+  stations: ChargingStation[];
+  stationsStatus: DataStatus;
+  stationsUpdatedAt: number | null;
+
   setViewLevel: (viewLevel: ViewLevel) => void;
   setSelectedCountry: (code: string | null) => void;
   setSelectedStation: (station: ChargingStation | null) => void;
   setStationPanelOpen: (open: boolean) => void;
   toggleLayer: (layer: keyof LayerState) => void;
+  loadStations: () => Promise<void>;
 };
 
-export const useEvoraStore = create<EvoraStore>((set) => ({
+export const useEvoraStore = create<EvoraStore>((set, get) => ({
   viewLevel: "world",
   selectedCountry: null,
   selectedStation: null,
@@ -27,6 +34,10 @@ export const useEvoraStore = create<EvoraStore>((set) => ({
     fastChargersOnly: false,
   },
   stationPanelOpen: false,
+
+  stations: [],
+  stationsStatus: "idle",
+  stationsUpdatedAt: null,
 
   setViewLevel: (viewLevel) => set({ viewLevel }),
   setSelectedCountry: (code) => set({ selectedCountry: code }),
@@ -40,4 +51,17 @@ export const useEvoraStore = create<EvoraStore>((set) => ({
       if (layer === "carbonIntensity" && next.carbonIntensity) next.gridPrices = false;
       return { layers: next };
     }),
+
+  loadStations: async () => {
+    if (get().stationsStatus === "loading" || get().stationsStatus === "ready") return;
+    set({ stationsStatus: "loading" });
+    try {
+      const res = await fetch("/api/stations");
+      const data = (await res.json()) as { stations: ChargingStation[] };
+      set({ stations: data.stations ?? [], stationsStatus: "ready", stationsUpdatedAt: Date.now() });
+    } catch (error) {
+      console.error("Failed to load stations", error);
+      set({ stationsStatus: "error" });
+    }
+  },
 }));

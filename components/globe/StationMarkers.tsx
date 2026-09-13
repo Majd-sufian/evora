@@ -10,7 +10,7 @@ import { useEvoraStore } from "@/lib/store";
 
 const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.02;
-const MARKER_RADIUS = 0.007;
+const MARKER_RADIUS = 0.006;
 const FAST_CHARGER_MIN_KW = 50;
 
 const STATUS_COLOR: Record<StationStatus, string> = {
@@ -23,17 +23,21 @@ export default function StationMarkers() {
   const chargersVisible = useEvoraStore((s) => s.layers.chargers);
   const fastChargersOnly = useEvoraStore((s) => s.layers.fastChargersOnly);
   const activityPulses = useEvoraStore((s) => s.layers.activityPulses);
+  const stations = useEvoraStore((s) => s.stations);
+  const stationsStatus = useEvoraStore((s) => s.stationsStatus);
   const groupRef = useRef<THREE.Group>(null);
+
+  const sourceStations = stationsStatus === "ready" && stations.length > 0 ? stations : MOCK_STATIONS;
 
   const markers = useMemo(
     () =>
-      MOCK_STATIONS.filter((s) => !fastChargersOnly || (s.powerKw ?? 0) >= FAST_CHARGER_MIN_KW).map(
-        (station) => ({
+      sourceStations
+        .filter((s) => !fastChargersOnly || (s.powerKw ?? 0) >= FAST_CHARGER_MIN_KW)
+        .map((station) => ({
           ...station,
           position: latLonToVector3(station.lat, station.lon, GLOBE_RADIUS * SURFACE_OFFSET),
-        })
-      ),
-    [fastChargersOnly]
+        })),
+    [sourceStations, fastChargersOnly]
   );
 
   useFrame(({ clock }) => {
