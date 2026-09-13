@@ -26,6 +26,9 @@ export default function StationMarkers() {
   const activityPulses = useEvoraStore((s) => s.layers.activityPulses);
   const stations = useEvoraStore((s) => s.stations);
   const stationsStatus = useEvoraStore((s) => s.stationsStatus);
+  const setSelectedStation = useEvoraStore((s) => s.setSelectedStation);
+  const setViewLevel = useEvoraStore((s) => s.setViewLevel);
+  const setStationPanelOpen = useEvoraStore((s) => s.setStationPanelOpen);
   const groupRef = useRef<THREE.Group>(null);
   const ringIconTexture = useMemo(() => getRingIconTexture(), []);
 
@@ -53,7 +56,24 @@ export default function StationMarkers() {
   return (
     <group ref={groupRef}>
       {markers.map((marker) => (
-        <sprite key={marker.id} position={marker.position} scale={[MARKER_SIZE, MARKER_SIZE, 1]}>
+        <sprite
+          key={marker.id}
+          position={marker.position}
+          scale={[MARKER_SIZE, MARKER_SIZE, 1]}
+          onClick={(event) => {
+            event.stopPropagation();
+            setSelectedStation(marker);
+            setViewLevel("station");
+            setStationPanelOpen(true);
+          }}
+          onPointerOver={(event) => {
+            event.stopPropagation();
+            document.body.style.cursor = "pointer";
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = "auto";
+          }}
+        >
           <spriteMaterial
             map={ringIconTexture}
             color={STATUS_COLOR[marker.status]}

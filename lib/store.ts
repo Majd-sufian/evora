@@ -25,6 +25,8 @@ type EvoraStore = {
   toggleLayer: (layer: keyof LayerState) => void;
   loadStations: () => Promise<void>;
   loadCarbonIntensity: () => Promise<void>;
+  /** Steps back one zoom level: station -> country (or world) -> world. */
+  goBack: () => void;
 };
 
 export const useEvoraStore = create<EvoraStore>((set, get) => ({
@@ -75,6 +77,19 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
     } catch (error) {
       console.error("Failed to load stations", error);
       set({ stationsStatus: "error" });
+    }
+  },
+
+  goBack: () => {
+    const { viewLevel, selectedCountry } = get();
+    if (viewLevel === "station") {
+      set({
+        selectedStation: null,
+        stationPanelOpen: false,
+        viewLevel: selectedCountry ? "country" : "world",
+      });
+    } else if (viewLevel === "country") {
+      set({ selectedCountry: null, viewLevel: "world" });
     }
   },
 

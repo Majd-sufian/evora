@@ -24,6 +24,9 @@ export default function CountryClusters() {
   const carbonLayerOn = useEvoraStore((s) => s.layers.carbonIntensity);
   const carbonStatus = useEvoraStore((s) => s.carbonStatus);
   const carbonIntensityByCountry = useEvoraStore((s) => s.carbonIntensityByCountry);
+  const viewLevel = useEvoraStore((s) => s.viewLevel);
+  const setSelectedCountry = useEvoraStore((s) => s.setSelectedCountry);
+  const setViewLevel = useEvoraStore((s) => s.setViewLevel);
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const ringIconTexture = useMemo(() => getRingIconTexture(), []);
 
@@ -56,7 +59,24 @@ export default function CountryClusters() {
   return (
     <group>
       {clusters.map((cluster) => (
-        <group key={cluster.code} position={cluster.position}>
+        <group
+          key={cluster.code}
+          position={cluster.position}
+          onClick={(event) => {
+            if (viewLevel !== "world") return;
+            event.stopPropagation();
+            setSelectedCountry(cluster.code);
+            setViewLevel("country");
+          }}
+          onPointerOver={(event) => {
+            if (viewLevel !== "world") return;
+            event.stopPropagation();
+            document.body.style.cursor = "pointer";
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = "auto";
+          }}
+        >
           {/* Soft aura behind the badge. */}
           <sprite scale={[cluster.size, cluster.size, 1]}>
             <spriteMaterial
