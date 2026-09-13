@@ -6,15 +6,16 @@ import { latLonToVector3 } from "@/lib/geo";
 import { COUNTRIES } from "@/lib/data/countries";
 import { useEvoraStore } from "@/lib/store";
 import { carbonIntensityColor } from "@/lib/colorScale";
+import { getGlowTexture } from "@/lib/three/glowTexture";
 
 const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.015;
-const MIN_CLUSTER_RADIUS = 0.014;
-const CLUSTER_SCALE_FACTOR = 0.0007;
+const MIN_GLOW_SIZE = 0.05;
+const GLOW_SCALE_FACTOR = 0.0022;
 const DEFAULT_CLUSTER_COLOR = "#00D4FF";
 
-function clusterRadius(stationCount: number) {
-  return MIN_CLUSTER_RADIUS + Math.sqrt(stationCount) * CLUSTER_SCALE_FACTOR;
+function glowSize(stationCount: number) {
+  return MIN_GLOW_SIZE + Math.sqrt(stationCount) * GLOW_SCALE_FACTOR;
 }
 
 export default function CountryClusters() {
@@ -23,6 +24,7 @@ export default function CountryClusters() {
   const carbonLayerOn = useEvoraStore((s) => s.layers.carbonIntensity);
   const carbonStatus = useEvoraStore((s) => s.carbonStatus);
   const carbonIntensityByCountry = useEvoraStore((s) => s.carbonIntensityByCountry);
+  const glowTexture = useMemo(() => getGlowTexture(), []);
 
   const realCounts = useMemo(() => {
     if (stationsStatus !== "ready") return null;
@@ -43,7 +45,7 @@ export default function CountryClusters() {
         return {
           ...country,
           position: latLonToVector3(country.lat, country.lon, GLOBE_RADIUS * SURFACE_OFFSET),
-          radius: clusterRadius(count),
+          size: glowSize(count),
           color: carbonValue !== undefined ? carbonIntensityColor(carbonValue) : DEFAULT_CLUSTER_COLOR,
         };
       }),
@@ -53,16 +55,28 @@ export default function CountryClusters() {
   return (
     <group>
       {clusters.map((cluster) => (
-        <mesh key={cluster.code} position={cluster.position}>
-          <sphereGeometry args={[cluster.radius, 16, 16]} />
-          <meshBasicMaterial
-            color={cluster.color}
-            transparent
-            opacity={0.85}
-            blending={THREE.AdditiveBlending}
-            depthWrite={false}
-          />
-        </mesh>
+        <group key={cluster.code} position={cluster.position}>
+          <sprite scale={[cluster.size, cluster.size, 1]}>
+            <spriteMaterial
+              map={glowTexture}
+              color={cluster.color}
+              transparent
+              opacity={0.9}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </sprite>
+          <sprite scale={[cluster.size * 0.32, cluster.size * 0.32, 1]}>
+            <spriteMaterial
+              map={glowTexture}
+              color="#FFFFFF"
+              transparent
+              opacity={0.95}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </sprite>
+        </group>
       ))}
     </group>
   );
