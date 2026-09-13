@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #050a0f;
+  --bg-panel: #0a1520;
+  --cyan: #00d4ff;
+  --green: #00ff88;
+  --orange: #ff6b35;
+  --red: #ff3355;
+  --text-primary: #e8f4f8;
+  --text-secondary: #7ba3b8;
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
