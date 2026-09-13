@@ -20,6 +20,12 @@ const STATUS_COLOR: Record<StationStatus, string> = {
   unavailable: "#FF3355",
 };
 
+// Pulse ring cycle durations per status; unavailable stations don't pulse.
+const PULSE_PERIOD_SECONDS: Partial<Record<StationStatus, number>> = {
+  available: 2,
+  "in-use": 1,
+};
+
 export default function StationMarkers() {
   const chargersVisible = useEvoraStore((s) => s.layers.chargers);
   const fastChargersOnly = useEvoraStore((s) => s.layers.fastChargersOnly);
@@ -46,9 +52,14 @@ export default function StationMarkers() {
   );
 
   useFrame(({ clock }) => {
-    if (!activityPulses || !groupRef.current) return;
-    const pulse = MARKER_SIZE * (1 + Math.sin(clock.elapsedTime * 2) * 0.25);
-    groupRef.current.children.forEach((child) => child.scale.set(pulse, pulse, 1));
+    if (!groupRef.current) return;
+    groupRef.current.children.forEach((child) => {
+      const period = activityPulses ? (child.userData.pulsePeriod as number | undefined) : undefined;
+      const scale = period
+        ? MARKER_SIZE * (1 + Math.sin((clock.elapsedTime / period) * Math.PI * 2) * 0.25)
+        : MARKER_SIZE;
+      child.scale.set(scale, scale, 1);
+    });
   });
 
   if (!chargersVisible) return null;
@@ -60,6 +71,7 @@ export default function StationMarkers() {
           key={marker.id}
           position={marker.position}
           scale={[MARKER_SIZE, MARKER_SIZE, 1]}
+          userData={{ pulsePeriod: PULSE_PERIOD_SECONDS[marker.status] }}
           onClick={(event) => {
             event.stopPropagation();
             setSelectedStation(marker);
