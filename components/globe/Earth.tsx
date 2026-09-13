@@ -35,13 +35,13 @@ const fragmentShader = `
     vec3 photo = texture2D(map, vUv).rgb;
     float luma = dot(photo, vec3(0.299, 0.587, 0.114));
     float relief = pow(clamp(luma, 0.0, 1.0), contrast);
-    float landBrightness = mix(0.7, 1.2, relief);
+    float landBrightness = mix(0.55, 0.95, relief);
 
     vec3 land = brightColor * landBrightness;
     vec3 duotone = mix(land, darkColor, oceanAmount);
 
     float facing = max(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)), 0.0);
-    float shade = 0.65 + 0.35 * facing;
+    float shade = 0.78 + 0.22 * facing;
     gl_FragColor = vec4(duotone * shade, 1.0);
   }
 `;
@@ -59,9 +59,9 @@ export default function Earth({ onPointerOver, onPointerOut }: EarthProps) {
         uniforms={{
           map: { value: map },
           landMask: { value: landMask },
-          darkColor: { value: new THREE.Color("#050A0F") },
-          brightColor: { value: new THREE.Color("#00D4FF") },
-          contrast: { value: 1.6 },
+          darkColor: { value: new THREE.Color("#0A141F") },
+          brightColor: { value: new THREE.Color("#5AC8E0") },
+          contrast: { value: 1.1 },
         }}
       />
     </mesh>
