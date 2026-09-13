@@ -10,6 +10,7 @@ export type ChargingStation = {
   operator?: string;
   powerKw?: number;
   address?: string;
+  connectorTypes?: string[];
 };
 
 export type ViewLevel = "world" | "country" | "station";

@@ -20,7 +20,7 @@ function mapStatus(statusTypeId: number | null | undefined): StationStatus {
   }
 }
 
-type OcmConnection = { PowerKW?: number | null };
+type OcmConnection = { PowerKW?: number | null; ConnectionType?: { Title?: string } };
 type OcmPoi = {
   ID: number;
   AddressInfo?: {
@@ -43,9 +43,10 @@ function mapPoiToStation(poi: OcmPoi, fallbackCountryCode: string): ChargingStat
     return null;
   }
 
-  const maxPower = (poi.Connections ?? []).reduce(
-    (max, c) => (c.PowerKW && c.PowerKW > max ? c.PowerKW : max),
-    0
+  const connections = poi.Connections ?? [];
+  const maxPower = connections.reduce((max, c) => (c.PowerKW && c.PowerKW > max ? c.PowerKW : max), 0);
+  const connectorTypes = Array.from(
+    new Set(connections.map((c) => c.ConnectionType?.Title).filter((t): t is string => !!t))
   );
 
   return {
@@ -58,6 +59,7 @@ function mapPoiToStation(poi: OcmPoi, fallbackCountryCode: string): ChargingStat
     operator: poi.OperatorInfo?.Title,
     powerKw: maxPower || undefined,
     address: [addr.AddressLine1, addr.Town].filter(Boolean).join(", ") || undefined,
+    connectorTypes: connectorTypes.length > 0 ? connectorTypes : undefined,
   };
 }
 
