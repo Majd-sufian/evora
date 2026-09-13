@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import Earth from "./Earth";
 import Atmosphere from "./Atmosphere";
+import OrbitalRings from "./OrbitalRings";
 
 const WORLD_VIEW_DISTANCE = 2.5;
 const STATION_VIEW_DISTANCE = 0.8;
@@ -15,7 +16,7 @@ export default function Globe() {
   const paused = hovering || interacting;
 
   return (
-    <Canvas camera={{ position: [0, 0, WORLD_VIEW_DISTANCE], fov: 45 }}>
+    <Canvas camera={{ position: [0, 0, WORLD_VIEW_DISTANCE], fov: 60 }}>
       <ambientLight intensity={0.6} />
       <pointLight position={[5, 3, 5]} intensity={1} />
       <Earth
@@ -24,6 +25,7 @@ export default function Globe() {
         onPointerOut={() => setHovering(false)}
       />
       <Atmosphere radius={1} />
+      <OrbitalRings />
       <OrbitControls
         enablePan={false}
         minDistance={STATION_VIEW_DISTANCE}
