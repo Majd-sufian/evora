@@ -8,9 +8,9 @@ import Atmosphere from "./Atmosphere";
 
 const WORLD_VIEW_DISTANCE = 2.5;
 const STATION_VIEW_DISTANCE = 0.8;
-// Camera kept at the spec'd 2.5-unit distance, just angled up slightly so
-// Europe (mid-northern latitudes) sits centered instead of hugging the rim.
-const WORLD_VIEW_POSITION: [number, number, number] = [0, 0.94, 2.32];
+// Camera kept at the spec'd 2.5-unit distance, angled up just enough that
+// Europe sits centered without letting Africa dominate the frame below it.
+const WORLD_VIEW_POSITION: [number, number, number] = [0, 1.35, 2.09];
 
 export default function Globe() {
   const [interacting, setInteracting] = useState(false);
