@@ -1,11 +1,15 @@
+"use client";
+
+import dynamic from "next/dynamic";
+
+const Globe = dynamic(() => import("@/components/globe/Globe"), {
+  ssr: false,
+});
+
 export default function Home() {
   return (
-    <main className="min-h-screen w-full bg-bg-primary">
-      <div className="flex h-screen items-center justify-center">
-        <h1 className="font-display text-2xl tracking-widest text-cyan">
-          EVORA
-        </h1>
-      </div>
+    <main className="relative h-screen w-full overflow-hidden bg-bg-primary">
+      <Globe />
     </main>
   );
 }
