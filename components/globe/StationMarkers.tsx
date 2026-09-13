@@ -7,11 +7,11 @@ import { latLonToVector3 } from "@/lib/geo";
 import { MOCK_STATIONS } from "@/lib/data/mockStations";
 import { StationStatus } from "@/lib/types";
 import { useEvoraStore } from "@/lib/store";
-import { getGlowTexture } from "@/lib/three/glowTexture";
+import { getRingIconTexture } from "@/lib/three/glowTexture";
 
 const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.02;
-const MARKER_SIZE = 0.03;
+const MARKER_SIZE = 0.028;
 const FAST_CHARGER_MIN_KW = 50;
 
 const STATUS_COLOR: Record<StationStatus, string> = {
@@ -27,7 +27,7 @@ export default function StationMarkers() {
   const stations = useEvoraStore((s) => s.stations);
   const stationsStatus = useEvoraStore((s) => s.stationsStatus);
   const groupRef = useRef<THREE.Group>(null);
-  const glowTexture = useMemo(() => getGlowTexture(), []);
+  const ringIconTexture = useMemo(() => getRingIconTexture(), []);
 
   const sourceStations = stationsStatus === "ready" && stations.length > 0 ? stations : MOCK_STATIONS;
 
@@ -55,11 +55,10 @@ export default function StationMarkers() {
       {markers.map((marker) => (
         <sprite key={marker.id} position={marker.position} scale={[MARKER_SIZE, MARKER_SIZE, 1]}>
           <spriteMaterial
-            map={glowTexture}
+            map={ringIconTexture}
             color={STATUS_COLOR[marker.status]}
             transparent
             opacity={0.95}
-            blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
         </sprite>

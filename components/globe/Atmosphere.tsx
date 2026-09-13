@@ -62,6 +62,8 @@ function GlowShell({ radius, scale, power, bias, strength, color }: GlowShellPro
 export default function Atmosphere({ radius = 1 }: { radius?: number }) {
   return (
     <>
+      {/* Crisp bright border tracing the globe's silhouette. */}
+      <GlowShell radius={radius} scale={1.03} power={9} bias={0.94} strength={4} color="#00D4FF" />
       {/* Thin, soft limb right at the globe's edge. */}
       <GlowShell radius={radius} scale={1.015} power={2.2} bias={0.82} strength={0.7} color="#9FE0F0" />
       {/* Faint, soft outer haze — subtle, not a glowing halo. */}

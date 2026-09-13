@@ -6,7 +6,7 @@ import { latLonToVector3 } from "@/lib/geo";
 import { COUNTRIES } from "@/lib/data/countries";
 import { useEvoraStore } from "@/lib/store";
 import { carbonIntensityColor } from "@/lib/colorScale";
-import { getGlowTexture } from "@/lib/three/glowTexture";
+import { getGlowTexture, getRingIconTexture } from "@/lib/three/glowTexture";
 
 const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.015;
@@ -25,6 +25,7 @@ export default function CountryClusters() {
   const carbonStatus = useEvoraStore((s) => s.carbonStatus);
   const carbonIntensityByCountry = useEvoraStore((s) => s.carbonIntensityByCountry);
   const glowTexture = useMemo(() => getGlowTexture(), []);
+  const ringIconTexture = useMemo(() => getRingIconTexture(), []);
 
   const realCounts = useMemo(() => {
     if (stationsStatus !== "ready") return null;
@@ -56,23 +57,24 @@ export default function CountryClusters() {
     <group>
       {clusters.map((cluster) => (
         <group key={cluster.code} position={cluster.position}>
+          {/* Soft aura behind the badge. */}
           <sprite scale={[cluster.size, cluster.size, 1]}>
             <spriteMaterial
               map={glowTexture}
               color={cluster.color}
               transparent
-              opacity={0.9}
+              opacity={0.55}
               blending={THREE.AdditiveBlending}
               depthWrite={false}
             />
           </sprite>
-          <sprite scale={[cluster.size * 0.32, cluster.size * 0.32, 1]}>
+          {/* Crisp energy-node ring badge on top. */}
+          <sprite scale={[cluster.size * 0.55, cluster.size * 0.55, 1]}>
             <spriteMaterial
-              map={glowTexture}
-              color="#FFFFFF"
+              map={ringIconTexture}
+              color={cluster.color}
               transparent
-              opacity={0.95}
-              blending={THREE.AdditiveBlending}
+              opacity={1}
               depthWrite={false}
             />
           </sprite>
