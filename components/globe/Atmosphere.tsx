@@ -62,10 +62,10 @@ function GlowShell({ radius, scale, power, bias, strength, color }: GlowShellPro
 export default function Atmosphere({ radius = 1 }: { radius?: number }) {
   return (
     <>
-      {/* Thin bright limb right at the globe's edge, like Apple Maps' atmosphere. */}
-      <GlowShell radius={radius} scale={1.015} power={2.0} bias={0.82} strength={1.1} color="#BFEFFF" />
+      {/* Thin bright limb right at the globe's edge. */}
+      <GlowShell radius={radius} scale={1.015} power={2.0} bias={0.82} strength={1.1} color="#7CE9FF" />
       {/* Faint, soft outer haze — subtle, not a glowing halo. */}
-      <GlowShell radius={radius} scale={1.12} power={4.0} bias={0.6} strength={0.35} color="#8FD8F5" />
+      <GlowShell radius={radius} scale={1.12} power={4.0} bias={0.6} strength={0.35} color="#00D4FF" />
     </>
   );
 }
