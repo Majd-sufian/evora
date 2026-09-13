@@ -2,6 +2,7 @@ import NetworkStatsPanel from "./NetworkStatsPanel";
 import LiveMonitorPanel from "./LiveMonitorPanel";
 import PriceChartPanel from "./PriceChartPanel";
 import ActivityChartPanel from "./ActivityChartPanel";
+import CarbonLegend from "./CarbonLegend";
 
 export default function HudOverlay() {
   return (
@@ -14,7 +15,9 @@ export default function HudOverlay() {
           <LiveMonitorPanel />
         </div>
       </div>
-      <div />
+      <div className="flex items-start justify-center">
+        <CarbonLegend />
+      </div>
       <div className="flex items-end justify-between gap-4">
         <div className="pointer-events-auto w-72">
           <PriceChartPanel />

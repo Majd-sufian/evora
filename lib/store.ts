@@ -14,12 +14,17 @@ type EvoraStore = {
   stationsStatus: DataStatus;
   stationsUpdatedAt: number | null;
 
+  carbonIntensityByCountry: Record<string, number>;
+  carbonStatus: DataStatus;
+  carbonUpdatedAt: number | null;
+
   setViewLevel: (viewLevel: ViewLevel) => void;
   setSelectedCountry: (code: string | null) => void;
   setSelectedStation: (station: ChargingStation | null) => void;
   setStationPanelOpen: (open: boolean) => void;
   toggleLayer: (layer: keyof LayerState) => void;
   loadStations: () => Promise<void>;
+  loadCarbonIntensity: () => Promise<void>;
 };
 
 export const useEvoraStore = create<EvoraStore>((set, get) => ({
@@ -39,18 +44,26 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   stationsStatus: "idle",
   stationsUpdatedAt: null,
 
+  carbonIntensityByCountry: {},
+  carbonStatus: "idle",
+  carbonUpdatedAt: null,
+
   setViewLevel: (viewLevel) => set({ viewLevel }),
   setSelectedCountry: (code) => set({ selectedCountry: code }),
   setSelectedStation: (station) => set({ selectedStation: station }),
   setStationPanelOpen: (open) => set({ stationPanelOpen: open }),
-  toggleLayer: (layer) =>
+  toggleLayer: (layer) => {
     set((state) => {
       const next: LayerState = { ...state.layers, [layer]: !state.layers[layer] };
       // Grid Prices and Carbon Intensity are mutually exclusive overlays.
       if (layer === "gridPrices" && next.gridPrices) next.carbonIntensity = false;
       if (layer === "carbonIntensity" && next.carbonIntensity) next.gridPrices = false;
       return { layers: next };
-    }),
+    });
+    if (layer === "carbonIntensity" && get().layers.carbonIntensity) {
+      get().loadCarbonIntensity();
+    }
+  },
 
   loadStations: async () => {
     if (get().stationsStatus === "loading" || get().stationsStatus === "ready") return;
@@ -62,6 +75,25 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
     } catch (error) {
       console.error("Failed to load stations", error);
       set({ stationsStatus: "error" });
+    }
+  },
+
+  loadCarbonIntensity: async () => {
+    if (get().carbonStatus === "loading" || get().carbonStatus === "ready") return;
+    set({ carbonStatus: "loading" });
+    try {
+      const res = await fetch("/api/carbon");
+      const data = (await res.json()) as {
+        carbonIntensity: { countryCode: string; carbonIntensity: number }[];
+      };
+      const byCountry: Record<string, number> = {};
+      for (const entry of data.carbonIntensity ?? []) {
+        byCountry[entry.countryCode] = entry.carbonIntensity;
+      }
+      set({ carbonIntensityByCountry: byCountry, carbonStatus: "ready", carbonUpdatedAt: Date.now() });
+    } catch (error) {
+      console.error("Failed to load carbon intensity", error);
+      set({ carbonStatus: "error" });
     }
   },
 }));
