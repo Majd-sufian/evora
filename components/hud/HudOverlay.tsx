@@ -5,7 +5,7 @@ import ActivityChartPanel from "./ActivityChartPanel";
 
 export default function HudOverlay() {
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 grid grid-rows-[auto_1fr_auto] gap-4 p-6">
+    <div className="pointer-events-none absolute inset-0 z-10 grid grid-rows-[auto_1fr_auto] gap-4 py-6 pl-[88px] pr-6">
       <div className="flex items-start justify-between gap-4">
         <div className="pointer-events-auto w-64">
           <NetworkStatsPanel />
