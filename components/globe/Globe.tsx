@@ -3,27 +3,24 @@
 import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import Earth from "./Earth";
+import RotatingGlobe from "./RotatingGlobe";
 import Atmosphere from "./Atmosphere";
 import OrbitalRings from "./OrbitalRings";
 
 const WORLD_VIEW_DISTANCE = 2.5;
 const STATION_VIEW_DISTANCE = 0.8;
+// Camera kept at the spec'd 2.5-unit distance, just angled up slightly so
+// Europe (mid-northern latitudes) sits centered instead of hugging the rim.
+const WORLD_VIEW_POSITION: [number, number, number] = [0, 0.94, 2.32];
 
 export default function Globe() {
-  const [hovering, setHovering] = useState(false);
   const [interacting, setInteracting] = useState(false);
-  const paused = hovering || interacting;
 
   return (
-    <Canvas camera={{ position: [0, 0, WORLD_VIEW_DISTANCE], fov: 60 }}>
+    <Canvas camera={{ position: WORLD_VIEW_POSITION, fov: 60 }}>
       <ambientLight intensity={0.6} />
       <pointLight position={[5, 3, 5]} intensity={1} />
-      <Earth
-        paused={paused}
-        onPointerOver={() => setHovering(true)}
-        onPointerOut={() => setHovering(false)}
-      />
+      <RotatingGlobe externallyPaused={interacting} />
       <Atmosphere radius={1} />
       <OrbitalRings />
       <OrbitControls
