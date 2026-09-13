@@ -18,26 +18,27 @@ const vertexShader = `
   }
 `;
 
-// Recolors the black-land/white-ocean specular mask into glowing cyan
-// continents on a dark ocean, with soft camera-facing shading so the globe
-// always reads bright instead of falling into photographic, cold shadow.
+// The raw satellite composite reads dark and muted; boost saturation and
+// brightness so it reads closer to a vivid, map-style globe (Apple Maps-like)
+// instead of a literal photographic render, then shade gently toward the limb.
 const fragmentShader = `
-  uniform sampler2D landMask;
-  uniform vec3 landColor;
-  uniform vec3 oceanColor;
+  uniform sampler2D map;
+  uniform float saturation;
+  uniform float brightness;
   varying vec2 vUv;
   varying vec3 vNormal;
   void main() {
-    float oceanAmount = texture2D(landMask, vUv).r;
-    vec3 base = mix(landColor, oceanColor, oceanAmount);
+    vec3 color = texture2D(map, vUv).rgb;
+    float luma = dot(color, vec3(0.299, 0.587, 0.114));
+    vec3 vivid = mix(vec3(luma), color, saturation) * brightness;
     float facing = max(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)), 0.0);
-    float shade = 0.55 + 0.45 * facing;
-    gl_FragColor = vec4(base * shade, 1.0);
+    float shade = 0.6 + 0.4 * facing;
+    gl_FragColor = vec4(vivid * shade, 1.0);
   }
 `;
 
 export default function Earth({ onPointerOver, onPointerOut }: EarthProps) {
-  const landMask = useLoader(THREE.TextureLoader, "/textures/earth_specular_2048.jpg");
+  const map = useLoader(THREE.TextureLoader, "/textures/earth_atmos_2048.jpg");
 
   return (
     <mesh onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
@@ -46,9 +47,9 @@ export default function Earth({ onPointerOver, onPointerOut }: EarthProps) {
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={{
-          landMask: { value: landMask },
-          landColor: { value: new THREE.Color("#5FD9FF") },
-          oceanColor: { value: new THREE.Color("#050E1C") },
+          map: { value: map },
+          saturation: { value: 1.7 },
+          brightness: { value: 1.55 },
         }}
       />
     </mesh>
