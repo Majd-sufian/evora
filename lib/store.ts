@@ -18,6 +18,11 @@ type EvoraStore = {
   carbonStatus: DataStatus;
   carbonUpdatedAt: number | null;
 
+  /** EUR/MWh hourly day-ahead prices per country, keyed by ISO2 code. */
+  gridPricesByCountry: Record<string, number[]>;
+  gridPricesStatus: DataStatus;
+  gridPricesUpdatedAt: number | null;
+
   setViewLevel: (viewLevel: ViewLevel) => void;
   setSelectedCountry: (code: string | null) => void;
   setSelectedStation: (station: ChargingStation | null) => void;
@@ -25,6 +30,7 @@ type EvoraStore = {
   toggleLayer: (layer: keyof LayerState) => void;
   loadStations: () => Promise<void>;
   loadCarbonIntensity: () => Promise<void>;
+  loadGridPrices: () => Promise<void>;
   /** Steps back one zoom level: station -> country (or world) -> world. */
   goBack: () => void;
 };
@@ -49,6 +55,10 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   carbonIntensityByCountry: {},
   carbonStatus: "idle",
   carbonUpdatedAt: null,
+
+  gridPricesByCountry: {},
+  gridPricesStatus: "idle",
+  gridPricesUpdatedAt: null,
 
   setViewLevel: (viewLevel) => set({ viewLevel }),
   setSelectedCountry: (code) => set({ selectedCountry: code }),
@@ -109,6 +119,25 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
     } catch (error) {
       console.error("Failed to load carbon intensity", error);
       set({ carbonStatus: "error" });
+    }
+  },
+
+  loadGridPrices: async () => {
+    if (get().gridPricesStatus === "loading" || get().gridPricesStatus === "ready") return;
+    set({ gridPricesStatus: "loading" });
+    try {
+      const res = await fetch("/api/prices");
+      const data = (await res.json()) as {
+        prices: { countryCode: string; hourly: number[] }[];
+      };
+      const byCountry: Record<string, number[]> = {};
+      for (const entry of data.prices ?? []) {
+        byCountry[entry.countryCode] = entry.hourly;
+      }
+      set({ gridPricesByCountry: byCountry, gridPricesStatus: "ready", gridPricesUpdatedAt: Date.now() });
+    } catch (error) {
+      console.error("Failed to load grid prices", error);
+      set({ gridPricesStatus: "error" });
     }
   },
 }));

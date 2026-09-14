@@ -2,6 +2,8 @@
 
 import { useEvoraStore } from "@/lib/store";
 import { StationStatus } from "@/lib/types";
+import { getSmartChargingRecommendation } from "@/lib/smartCharging";
+import { getCurrentHourPrice } from "@/lib/gridPrice";
 
 const STATUS_COLOR: Record<StationStatus, string> = {
   available: "text-green",
@@ -14,6 +16,12 @@ const STATUS_LABEL: Record<StationStatus, string> = {
   "in-use": "In Use",
   unavailable: "Unavailable",
 };
+
+function priceLevel(eurPerMwh: number): { label: string; className: string } {
+  if (eurPerMwh <= 60) return { label: "Low", className: "text-green" };
+  if (eurPerMwh <= 130) return { label: "Medium", className: "text-orange" };
+  return { label: "High", className: "text-red" };
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -28,6 +36,13 @@ export default function StationDetailPanel() {
   const station = useEvoraStore((s) => s.selectedStation);
   const open = useEvoraStore((s) => s.stationPanelOpen);
   const goBack = useEvoraStore((s) => s.goBack);
+  const gridPricesByCountry = useEvoraStore((s) => s.gridPricesByCountry);
+  const gridPricesStatus = useEvoraStore((s) => s.gridPricesStatus);
+
+  const hourly = station ? gridPricesByCountry[station.countryCode] : undefined;
+  const hasLivePrices = gridPricesStatus === "ready" && hourly && hourly.length > 0;
+  const currentPrice = hasLivePrices ? getCurrentHourPrice(hourly) : undefined;
+  const recommendation = hasLivePrices ? getSmartChargingRecommendation(hourly) : null;
 
   return (
     <div
@@ -60,13 +75,24 @@ export default function StationDetailPanel() {
           <Field label="Max Power">{station.powerKw ? `${station.powerKw} kW` : "—"}</Field>
           <Field label="Operator">{station.operator ?? "—"}</Field>
           <Field label="Current Price">
-            <span className="text-text-secondary">Pending live grid price data</span>
+            {currentPrice !== undefined ? (
+              <span>
+                €{currentPrice.toFixed(0)}/MWh
+                <span className={`ml-2 text-xs ${priceLevel(currentPrice).className}`}>
+                  {priceLevel(currentPrice).label}
+                </span>
+              </span>
+            ) : (
+              <span className="text-text-secondary">Pending live grid price data</span>
+            )}
           </Field>
 
           <div className="mt-4 rounded-sm border border-[#00D4FF33] bg-[#00D4FF0D] p-3">
             <div className="text-[10px] uppercase tracking-wide text-cyan">Smart Charging</div>
             <p className="mt-1 text-xs text-text-secondary">
-              Recommendation will appear here once the live grid price feed (ENTSO-E) is connected.
+              {recommendation
+                ? recommendation.message
+                : "Recommendation will appear here once the live grid price feed (ENTSO-E) is connected."}
             </p>
           </div>
         </div>

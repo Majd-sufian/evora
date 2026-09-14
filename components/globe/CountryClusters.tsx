@@ -5,8 +5,9 @@ import * as THREE from "three";
 import { latLonToVector3 } from "@/lib/geo";
 import { COUNTRIES } from "@/lib/data/countries";
 import { useEvoraStore } from "@/lib/store";
-import { carbonIntensityColor } from "@/lib/colorScale";
+import { carbonIntensityColor, gridPriceColor } from "@/lib/colorScale";
 import { getGlowTexture, getRingIconTexture } from "@/lib/three/glowTexture";
+import { getCurrentHourPrice } from "@/lib/gridPrice";
 
 const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.015;
@@ -24,6 +25,9 @@ export default function CountryClusters() {
   const carbonLayerOn = useEvoraStore((s) => s.layers.carbonIntensity);
   const carbonStatus = useEvoraStore((s) => s.carbonStatus);
   const carbonIntensityByCountry = useEvoraStore((s) => s.carbonIntensityByCountry);
+  const gridPricesLayerOn = useEvoraStore((s) => s.layers.gridPrices);
+  const gridPricesStatus = useEvoraStore((s) => s.gridPricesStatus);
+  const gridPricesByCountry = useEvoraStore((s) => s.gridPricesByCountry);
   const viewLevel = useEvoraStore((s) => s.viewLevel);
   const setSelectedCountry = useEvoraStore((s) => s.setSelectedCountry);
   const setViewLevel = useEvoraStore((s) => s.setViewLevel);
@@ -45,15 +49,31 @@ export default function CountryClusters() {
         const count = realCounts?.get(country.code) || country.stationCount;
         const carbonValue =
           carbonLayerOn && carbonStatus === "ready" ? carbonIntensityByCountry[country.code] : undefined;
+        const priceValue =
+          gridPricesLayerOn && gridPricesStatus === "ready"
+            ? getCurrentHourPrice(gridPricesByCountry[country.code])
+            : undefined;
+
+        let color = DEFAULT_CLUSTER_COLOR;
+        if (carbonValue !== undefined) color = carbonIntensityColor(carbonValue);
+        else if (priceValue !== undefined) color = gridPriceColor(priceValue);
 
         return {
           ...country,
           position: latLonToVector3(country.lat, country.lon, GLOBE_RADIUS * SURFACE_OFFSET),
           size: glowSize(count),
-          color: carbonValue !== undefined ? carbonIntensityColor(carbonValue) : DEFAULT_CLUSTER_COLOR,
+          color,
         };
       }),
-    [realCounts, carbonLayerOn, carbonStatus, carbonIntensityByCountry]
+    [
+      realCounts,
+      carbonLayerOn,
+      carbonStatus,
+      carbonIntensityByCountry,
+      gridPricesLayerOn,
+      gridPricesStatus,
+      gridPricesByCountry,
+    ]
   );
 
   return (
