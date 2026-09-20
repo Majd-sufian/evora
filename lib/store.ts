@@ -160,7 +160,12 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
       for (const entry of data.prices ?? []) {
         byCountry[entry.countryCode] = entry.hourly;
       }
-      set({ gridPricesByCountry: byCountry, gridPricesStatus: "ready", gridPricesUpdatedAt: Date.now() });
+      // A 200 response with zero countries populated means every upstream
+      // ENTSO-E fetch failed (see lib/api/entsoe.ts) — treat that as
+      // unavailable rather than "ready", so the UI doesn't imply live price
+      // coloring is active when nothing actually loaded.
+      const status: DataStatus = Object.keys(byCountry).length > 0 ? "ready" : "error";
+      set({ gridPricesByCountry: byCountry, gridPricesStatus: status, gridPricesUpdatedAt: Date.now() });
     } catch (error) {
       console.error("Failed to load grid prices", error);
       set({ gridPricesStatus: "error" });

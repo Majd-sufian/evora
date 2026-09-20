@@ -19,6 +19,7 @@ const LAYER_ROWS: { key: keyof ReturnType<typeof useEvoraStore.getState>["layers
 export default function LayerControlsPanel({ open, anchorLeft }: LayerControlsPanelProps) {
   const layers = useEvoraStore((s) => s.layers);
   const toggleLayer = useEvoraStore((s) => s.toggleLayer);
+  const gridPricesStatus = useEvoraStore((s) => s.gridPricesStatus);
 
   return (
     <div
@@ -40,6 +41,7 @@ export default function LayerControlsPanel({ open, anchorLeft }: LayerControlsPa
             label={row.label}
             checked={layers[row.key]}
             onChange={() => toggleLayer(row.key)}
+            note={row.key === "gridPrices" && gridPricesStatus === "error" ? "Live price data unavailable" : undefined}
           />
         ))}
       </div>
