@@ -76,6 +76,12 @@ export default function CountryClusters() {
     ]
   );
 
+  // Country badges are sized for World View's camera distance; left ungated,
+  // the same fixed-size sprites balloon to cover most of the screen once the
+  // camera moves in for Country/Station View, burying the real city-cluster
+  // and station markers and eating clicks meant for them.
+  if (viewLevel !== "world") return null;
+
   return (
     <group>
       {clusters.map((cluster) => (
@@ -83,13 +89,11 @@ export default function CountryClusters() {
           key={cluster.code}
           position={cluster.position}
           onClick={(event) => {
-            if (viewLevel !== "world") return;
             event.stopPropagation();
             setSelectedCountry(cluster.code);
             setViewLevel("country");
           }}
           onPointerOver={(event) => {
-            if (viewLevel !== "world") return;
             event.stopPropagation();
             document.body.style.cursor = "pointer";
           }}
