@@ -23,6 +23,15 @@ const config: Config = {
         body: ["var(--font-inter)"],
         mono: ["var(--font-jetbrains-mono)"],
       },
+      keyframes: {
+        "loading-sweep": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(300%)" },
+        },
+      },
+      animation: {
+        "loading-sweep": "loading-sweep 1.2s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

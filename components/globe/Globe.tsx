@@ -9,12 +9,16 @@ import Atmosphere from "./Atmosphere";
 import CameraRig from "./CameraRig";
 import { STATION_VIEW_DISTANCE, WORLD_VIEW_DISTANCE, WORLD_VIEW_POSITION } from "@/lib/three/viewConstants";
 
-export default function Globe() {
+type GlobeProps = {
+  onReady?: () => void;
+};
+
+export default function Globe({ onReady }: GlobeProps) {
   const [interacting, setInteracting] = useState(false);
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   return (
-    <Canvas camera={{ position: WORLD_VIEW_POSITION, fov: 60 }}>
+    <Canvas camera={{ position: WORLD_VIEW_POSITION, fov: 60 }} onCreated={() => onReady?.()}>
       <ambientLight intensity={0.9} />
       <pointLight position={[5, 3, 5]} intensity={1.4} />
       <Stars radius={80} depth={40} count={3000} factor={2} saturation={0} fade speed={0.3} />
