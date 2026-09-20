@@ -7,7 +7,7 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import RotatingGlobe from "./RotatingGlobe";
 import Atmosphere from "./Atmosphere";
 import CameraRig from "./CameraRig";
-import { STATION_VIEW_DISTANCE, WORLD_VIEW_DISTANCE, WORLD_VIEW_POSITION } from "@/lib/three/viewConstants";
+import { MAX_ORBIT_DISTANCE, STATION_VIEW_DISTANCE, WORLD_VIEW_POSITION } from "@/lib/three/viewConstants";
 
 type GlobeProps = {
   onReady?: () => void;
@@ -29,7 +29,7 @@ export default function Globe({ onReady }: GlobeProps) {
         ref={controlsRef}
         enablePan={false}
         minDistance={STATION_VIEW_DISTANCE}
-        maxDistance={WORLD_VIEW_DISTANCE}
+        maxDistance={MAX_ORBIT_DISTANCE}
         rotateSpeed={0.4}
         onStart={() => setInteracting(true)}
         onEnd={() => setInteracting(false)}

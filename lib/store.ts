@@ -40,6 +40,10 @@ type EvoraStore = {
   loadGridPrices: () => Promise<void>;
   /** Steps back one zoom level: station -> country (or world) -> world. */
   goBack: () => void;
+  /** Leaves Station View entirely in one step — used when the camera is
+   * manually zoomed out past it, unlike goBack() which first un-selects a
+   * single station before leaving the cluster on an explicit click. */
+  exitStationView: () => void;
 };
 
 export const useEvoraStore = create<EvoraStore>((set, get) => ({
@@ -127,6 +131,17 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
     } else if (viewLevel === "country") {
       set({ selectedCountry: null, viewLevel: "world" });
     }
+  },
+
+  exitStationView: () => {
+    const { selectedCountry } = get();
+    set({
+      selectedStation: null,
+      selectedCityCluster: null,
+      flyToTarget: null,
+      stationPanelOpen: false,
+      viewLevel: selectedCountry ? "country" : "world",
+    });
   },
 
   loadCarbonIntensity: async () => {
