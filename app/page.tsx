@@ -7,6 +7,7 @@ import Sidebar from "@/components/sidebar/Sidebar";
 import DataLoader from "@/components/DataLoader";
 import StationDetailPanel from "@/components/hud/StationDetailPanel";
 import LoadingScreen from "@/components/LoadingScreen";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import { useEvoraStore } from "@/lib/store";
 
 const Globe = dynamic(() => import("@/components/globe/Globe"), {
@@ -33,6 +34,7 @@ export default function Home() {
   return (
     <main className="relative h-screen w-full overflow-hidden bg-bg-primary">
       <DataLoader />
+      <KeyboardShortcuts />
       <Globe onReady={() => setGlobeReady(true)} />
       <HudOverlay />
       <Sidebar />
