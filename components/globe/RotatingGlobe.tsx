@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Earth from "./Earth";
 import CountryClusters from "./CountryClusters";
+import CityClusters from "./CityClusters";
 import StationMarkers from "./StationMarkers";
 import { useEvoraStore } from "@/lib/store";
 import { globeRotationRef } from "@/lib/three/globeRotation";
@@ -39,6 +40,7 @@ export default function RotatingGlobe({ externallyPaused }: { externallyPaused: 
     <group ref={groupRef}>
       <Earth onPointerOver={() => setHovering(true)} onPointerOut={() => setHovering(false)} />
       <CountryClusters />
+      <CityClusters />
       <StationMarkers />
     </group>
   );

@@ -1,11 +1,14 @@
 import { create } from "zustand";
 import { ChargingStation, LayerState, ViewLevel } from "./types";
+import { StationCluster } from "./clustering";
 
 type DataStatus = "idle" | "loading" | "ready" | "error";
 
 type EvoraStore = {
   viewLevel: ViewLevel;
   selectedCountry: string | null;
+  /** The city-scale cluster drilled into from Country View, if any. */
+  selectedCityCluster: StationCluster | null;
   selectedStation: ChargingStation | null;
   layers: LayerState;
   stationPanelOpen: boolean;
@@ -25,6 +28,7 @@ type EvoraStore = {
 
   setViewLevel: (viewLevel: ViewLevel) => void;
   setSelectedCountry: (code: string | null) => void;
+  setSelectedCityCluster: (cluster: StationCluster | null) => void;
   setSelectedStation: (station: ChargingStation | null) => void;
   setStationPanelOpen: (open: boolean) => void;
   toggleLayer: (layer: keyof LayerState) => void;
@@ -38,6 +42,7 @@ type EvoraStore = {
 export const useEvoraStore = create<EvoraStore>((set, get) => ({
   viewLevel: "world",
   selectedCountry: null,
+  selectedCityCluster: null,
   selectedStation: null,
   layers: {
     chargers: true,
@@ -62,6 +67,7 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
 
   setViewLevel: (viewLevel) => set({ viewLevel }),
   setSelectedCountry: (code) => set({ selectedCountry: code }),
+  setSelectedCityCluster: (cluster) => set({ selectedCityCluster: cluster }),
   setSelectedStation: (station) => set({ selectedStation: station }),
   setStationPanelOpen: (open) => set({ stationPanelOpen: open }),
   toggleLayer: (layer) => {
@@ -91,13 +97,19 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   },
 
   goBack: () => {
-    const { viewLevel, selectedCountry } = get();
+    const { viewLevel, selectedCountry, selectedCityCluster, selectedStation } = get();
     if (viewLevel === "station") {
-      set({
-        selectedStation: null,
-        stationPanelOpen: false,
-        viewLevel: selectedCountry ? "country" : "world",
-      });
+      if (selectedStation && selectedCityCluster) {
+        // Step back from a single station to the cluster's member list.
+        set({ selectedStation: null, stationPanelOpen: false });
+      } else {
+        set({
+          selectedStation: null,
+          selectedCityCluster: null,
+          stationPanelOpen: false,
+          viewLevel: selectedCountry ? "country" : "world",
+        });
+      }
     } else if (viewLevel === "country") {
       set({ selectedCountry: null, viewLevel: "world" });
     }

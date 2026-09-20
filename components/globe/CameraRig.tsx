@@ -31,6 +31,7 @@ export default function CameraRig({
   const { camera } = useThree();
   const viewLevel = useEvoraStore((s) => s.viewLevel);
   const selectedCountry = useEvoraStore((s) => s.selectedCountry);
+  const selectedCityCluster = useEvoraStore((s) => s.selectedCityCluster);
   const selectedStation = useEvoraStore((s) => s.selectedStation);
   const transitionRef = useRef<Transition | null>(null);
 
@@ -39,8 +40,9 @@ export default function CameraRig({
 
     if (viewLevel === "world") {
       target = new THREE.Vector3(...WORLD_VIEW_POSITION);
-    } else if (viewLevel === "station" && selectedStation) {
-      const local = latLonToVector3(selectedStation.lat, selectedStation.lon, 1);
+    } else if (viewLevel === "station" && (selectedStation || selectedCityCluster)) {
+      const point = selectedStation ?? selectedCityCluster!;
+      const local = latLonToVector3(point.lat, point.lon, 1);
       target = local
         .applyAxisAngle(new THREE.Vector3(0, 1, 0), globeRotationRef.current)
         .normalize()
@@ -63,7 +65,7 @@ export default function CameraRig({
       start: performance.now(),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewLevel, selectedCountry, selectedStation]);
+  }, [viewLevel, selectedCountry, selectedCityCluster, selectedStation]);
 
   useFrame(() => {
     const transition = transitionRef.current;

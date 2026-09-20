@@ -32,6 +32,9 @@ export default function StationMarkers() {
   const activityPulses = useEvoraStore((s) => s.layers.activityPulses);
   const stations = useEvoraStore((s) => s.stations);
   const stationsStatus = useEvoraStore((s) => s.stationsStatus);
+  const viewLevel = useEvoraStore((s) => s.viewLevel);
+  const selectedCityCluster = useEvoraStore((s) => s.selectedCityCluster);
+  const selectedStation = useEvoraStore((s) => s.selectedStation);
   const setSelectedStation = useEvoraStore((s) => s.setSelectedStation);
   const setViewLevel = useEvoraStore((s) => s.setViewLevel);
   const setStationPanelOpen = useEvoraStore((s) => s.setStationPanelOpen);
@@ -40,16 +43,27 @@ export default function StationMarkers() {
 
   const sourceStations = stationsStatus === "ready" && stations.length > 0 ? stations : MOCK_STATIONS;
 
-  const markers = useMemo(
-    () =>
-      sourceStations
-        .filter((s) => !fastChargersOnly || (s.powerKw ?? 0) >= FAST_CHARGER_MIN_KW)
-        .map((station) => ({
-          ...station,
-          position: latLonToVector3(station.lat, station.lon, GLOBE_RADIUS * SURFACE_OFFSET),
-        })),
-    [sourceStations, fastChargersOnly]
-  );
+  const markers = useMemo(() => {
+    let filtered = sourceStations.filter(
+      (s) => !fastChargersOnly || (s.powerKw ?? 0) >= FAST_CHARGER_MIN_KW
+    );
+
+    // At Station View, only show the drilled-into cluster's members (or just
+    // the one directly-selected station) instead of every marker worldwide.
+    if (viewLevel === "station") {
+      if (selectedCityCluster) {
+        const ids = new Set(selectedCityCluster.stationIds);
+        filtered = filtered.filter((s) => ids.has(s.id));
+      } else if (selectedStation) {
+        filtered = filtered.filter((s) => s.id === selectedStation.id);
+      }
+    }
+
+    return filtered.map((station) => ({
+      ...station,
+      position: latLonToVector3(station.lat, station.lon, GLOBE_RADIUS * SURFACE_OFFSET),
+    }));
+  }, [sourceStations, fastChargersOnly, viewLevel, selectedCityCluster, selectedStation]);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
@@ -62,7 +76,8 @@ export default function StationMarkers() {
     });
   });
 
-  if (!chargersVisible) return null;
+  // City-scale clusters take over the display at Country View.
+  if (!chargersVisible || viewLevel === "country") return null;
 
   return (
     <group ref={groupRef}>
