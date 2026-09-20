@@ -24,23 +24,6 @@ export function DashboardIcon({ className }: IconProps) {
   );
 }
 
-export function ProjectsIcon({ className }: IconProps) {
-  return (
-    <svg {...common} className={className}>
-      <path d="M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Z" />
-    </svg>
-  );
-}
-
-export function TechStackIcon({ className }: IconProps) {
-  return (
-    <svg {...common} className={className}>
-      <path d="m12 3 9 5-9 5-9-5 9-5Z" />
-      <path d="m3 13 9 5 9-5" />
-    </svg>
-  );
-}
-
 export function AboutIcon({ className }: IconProps) {
   return (
     <svg {...common} className={className}>

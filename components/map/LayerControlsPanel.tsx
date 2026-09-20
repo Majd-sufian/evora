@@ -5,7 +5,6 @@ import LayerToggle from "./LayerToggle";
 
 type LayerControlsPanelProps = {
   open: boolean;
-  anchorLeft: number;
 };
 
 const LAYER_ROWS: { key: keyof ReturnType<typeof useEvoraStore.getState>["layers"]; label: string }[] = [
@@ -16,17 +15,16 @@ const LAYER_ROWS: { key: keyof ReturnType<typeof useEvoraStore.getState>["layers
   { key: "fastChargersOnly", label: "Fast Chargers Only" },
 ];
 
-export default function LayerControlsPanel({ open, anchorLeft }: LayerControlsPanelProps) {
+export default function LayerControlsPanel({ open }: LayerControlsPanelProps) {
   const layers = useEvoraStore((s) => s.layers);
   const toggleLayer = useEvoraStore((s) => s.toggleLayer);
   const gridPricesStatus = useEvoraStore((s) => s.gridPricesStatus);
 
   return (
     <div
-      className="absolute top-6 z-20 w-72 rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] p-4 shadow-lg backdrop-blur-sm transition-[transform,opacity] duration-300 ease-out"
+      className="absolute right-0 top-full z-20 mt-2 w-72 rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] p-4 shadow-lg backdrop-blur-sm transition-[transform,opacity] duration-300 ease-out"
       style={{
-        left: anchorLeft,
-        transform: open ? "translateX(0)" : "translateX(-16px)",
+        transform: open ? "translateY(0)" : "translateY(-8px)",
         opacity: open ? 1 : 0,
         pointerEvents: open ? "auto" : "none",
       }}

@@ -5,6 +5,7 @@ import ActivityChartPanel from "./ActivityChartPanel";
 import CarbonLegend from "./CarbonLegend";
 import GridPriceLegend from "./GridPriceLegend";
 import SearchBar from "./SearchBar";
+import LayerControl from "@/components/map/LayerControl";
 
 export default function HudOverlay() {
   return (
@@ -20,7 +21,11 @@ export default function HudOverlay() {
           <LiveMonitorPanel />
         </div>
       </div>
-      <div />
+      <div className="flex items-center justify-end">
+        <div className="pointer-events-auto">
+          <LayerControl />
+        </div>
+      </div>
       <div className="flex items-end justify-between gap-4">
         <div className="pointer-events-auto w-72">
           <PriceChartPanel />
