@@ -27,9 +27,19 @@ export function getGlowTexture(): THREE.Texture {
 
 let cachedRingIcon: THREE.Texture | null = null;
 
+// A lightning-bolt silhouette, normalized to a 0-1 box.
+const BOLT_POINTS: [number, number][] = [
+  [0.58, 0.12],
+  [0.36, 0.54],
+  [0.49, 0.54],
+  [0.41, 0.88],
+  [0.67, 0.42],
+  [0.53, 0.42],
+];
+
 /**
- * A ring-with-center-dot "energy node" icon, generated once and reused as a
- * sprite map for markers/clusters instead of a plain soft blob.
+ * A ring-with-bolt "power node" icon, generated once and reused as a sprite
+ * map for markers/clusters instead of a plain soft blob.
  */
 export function getRingIconTexture(): THREE.Texture {
   if (cachedRingIcon) return cachedRingIcon;
@@ -50,7 +60,7 @@ export function getRingIconTexture(): THREE.Texture {
   ctx.strokeStyle = "rgba(255,255,255,1)";
   ctx.lineWidth = size * 0.05;
   ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.32, 0, Math.PI * 2);
+  ctx.arc(cx, cy, size * 0.36, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
 
@@ -59,7 +69,13 @@ export function getRingIconTexture(): THREE.Texture {
   ctx.shadowBlur = size * 0.1;
   ctx.fillStyle = "rgba(255,255,255,1)";
   ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.1, 0, Math.PI * 2);
+  BOLT_POINTS.forEach(([x, y], i) => {
+    const px = x * size;
+    const py = y * size;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.closePath();
   ctx.fill();
   ctx.restore();
 
