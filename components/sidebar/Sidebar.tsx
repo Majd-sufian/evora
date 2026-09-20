@@ -16,15 +16,19 @@ const COLLAPSED_WIDTH = 64;
 const EXPANDED_WIDTH = 200;
 
 export default function Sidebar() {
-  const [expanded, setExpanded] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false);
+  // Keep the sidebar expanded while the layer panel is open, even after the
+  // mouse leaves the narrow icon strip on its way to a toggle in the panel —
+  // otherwise the panel's anchorLeft snaps inward mid-move and clicks miss.
+  const expanded = hovered || layersOpen;
   const width = expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
 
   return (
     <>
       <aside
-        onMouseEnter={() => setExpanded(true)}
-        onMouseLeave={() => setExpanded(false)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         className="absolute left-0 top-0 z-20 flex h-full flex-col justify-between border-r border-[#00D4FF1A] bg-[#0A1520CC] backdrop-blur-sm transition-[width] duration-300 ease-out"
         style={{ width }}
       >
