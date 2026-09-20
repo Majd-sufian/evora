@@ -63,7 +63,7 @@ export default function SearchBar() {
   const showDropdown = focused && (countryMatches.length > 0 || placeResults.length > 0 || geocoding);
 
   return (
-    <div className="relative w-80">
+    <div className="relative w-full md:w-64 lg:w-80">
       <input
         type="text"
         value={query}

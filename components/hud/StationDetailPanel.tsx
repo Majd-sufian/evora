@@ -46,7 +46,7 @@ export default function StationDetailPanel() {
 
   return (
     <div
-      className="fixed right-0 top-0 z-30 h-full w-[360px] overflow-y-auto border-l border-[#00D4FF33] bg-[#0A1520F5] backdrop-blur-sm transition-transform duration-300 ease-out"
+      className="fixed right-0 top-0 z-30 h-full w-full max-w-[360px] overflow-y-auto border-l border-[#00D4FF33] bg-[#0A1520F5] backdrop-blur-sm transition-transform duration-300 ease-out"
       style={{ transform: open && station ? "translateX(0)" : "translateX(100%)" }}
     >
       {station && (

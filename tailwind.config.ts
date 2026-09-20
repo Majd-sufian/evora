@@ -7,6 +7,15 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    // Spec's own breakpoints: mobile <768px, tablet 768-1280px, desktop
+    // 1280px+. `md` (768) is already Tailwind's default; `lg` is overridden
+    // from Tailwind's default 1024 to the spec's literal 1280 desktop cutoff.
+    screens: {
+      sm: "480px",
+      md: "768px",
+      lg: "1280px",
+      xl: "1536px",
+    },
     extend: {
       colors: {
         "bg-primary": "var(--bg-primary)",
