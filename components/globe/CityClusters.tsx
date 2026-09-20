@@ -12,11 +12,15 @@ const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.018;
 const MIN_SIZE = 0.02;
 const SIZE_SCALE_FACTOR = 0.006;
+const SPREAD_SCALE_FACTOR = 0.05;
 const CLUSTER_COLOR = "#00D4FF";
 const FAST_CHARGER_MIN_KW = 50;
 
-function clusterSize(count: number) {
-  return MIN_SIZE + Math.sqrt(count) * SIZE_SCALE_FACTOR;
+// Sized by both how many stations a cluster holds and how much ground it
+// actually spans, so a cluster covering a wider area reads as visually
+// bigger rather than just denser — a rough stand-in for a boundary ring.
+function clusterSize(count: number, spreadDegrees: number) {
+  return MIN_SIZE + Math.sqrt(count) * SIZE_SCALE_FACTOR + spreadDegrees * SPREAD_SCALE_FACTOR;
 }
 
 /**
@@ -46,7 +50,7 @@ export default function CityClusters() {
     return clusterStations(countryStations).map((cluster) => ({
       ...cluster,
       position: latLonToVector3(cluster.lat, cluster.lon, GLOBE_RADIUS * SURFACE_OFFSET),
-      size: clusterSize(cluster.count),
+      size: clusterSize(cluster.count, cluster.spreadDegrees),
     }));
   }, [source, selectedCountry, fastChargersOnly]);
 
