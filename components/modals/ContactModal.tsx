@@ -6,7 +6,7 @@ type ContactModalProps = {
   onClose: () => void;
 };
 
-const CONTACT_EMAIL = "majdnewsufian@gmail.com";
+const CONTACT_EMAIL = "majd.sufyan.t@gmail.com";
 
 export default function ContactModal({ onClose }: ContactModalProps) {
   return (

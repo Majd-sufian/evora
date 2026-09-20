@@ -15,12 +15,6 @@ export default function AboutModal({ onClose }: AboutModalProps) {
           live charger locations, grid electricity prices, and carbon
           intensity brought together on one interactive globe.
         </p>
-        <p>
-          It&apos;s a solo-built portfolio project, not a commercial product:
-          a way to get hands-on with real-time data integrations
-          (OpenChargeMap, ENTSO-E, Electricity Maps) and a Three.js-driven
-          interface end to end.
-        </p>
       </div>
     </Modal>
   );
