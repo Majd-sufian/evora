@@ -3,7 +3,7 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { latLonToVector3 } from "@/lib/geo";
+import { latLonToVector3, spiderfyPositions } from "@/lib/geo";
 import { MOCK_STATIONS } from "@/lib/data/mockStations";
 import { StationStatus } from "@/lib/types";
 import { useEvoraStore } from "@/lib/store";
@@ -13,6 +13,11 @@ const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.02;
 const MARKER_SIZE = 0.028;
 const FAST_CHARGER_MIN_KW = 50;
+// Stations within ~110m of each other (3 decimal degrees) are treated as
+// "the same lot" and spread into a small ring so each stays clickable
+// instead of stacking exactly on top of one another.
+const SPIDERFY_GROUP_PRECISION = 3;
+const SPIDERFY_RING_RADIUS = MARKER_SIZE * 2;
 
 const STATUS_COLOR: Record<StationStatus, string> = {
   available: "#00FF88",
@@ -68,10 +73,22 @@ export default function StationMarkers() {
       }
     }
 
-    return filtered.map((station) => ({
-      ...station,
-      position: latLonToVector3(station.lat, station.lon, GLOBE_RADIUS * SURFACE_OFFSET),
-    }));
+    // Group near-identical coordinates (e.g. several real chargers at one
+    // depot/parking lot) so they can be spiderfied apart instead of
+    // rendering exactly on top of each other.
+    const groups = new Map<string, typeof filtered>();
+    for (const station of filtered) {
+      const key = `${station.lat.toFixed(SPIDERFY_GROUP_PRECISION)}:${station.lon.toFixed(SPIDERFY_GROUP_PRECISION)}`;
+      const bucket = groups.get(key);
+      if (bucket) bucket.push(station);
+      else groups.set(key, [station]);
+    }
+
+    return Array.from(groups.values()).flatMap((group) => {
+      const center = latLonToVector3(group[0].lat, group[0].lon, GLOBE_RADIUS * SURFACE_OFFSET);
+      const positions = spiderfyPositions(center, group.length, SPIDERFY_RING_RADIUS);
+      return group.map((station, i) => ({ ...station, position: positions[i] }));
+    });
   }, [sourceStations, fastChargersOnly, viewLevel, selectedCityCluster, selectedStation, flyToTarget]);
 
   useFrame(({ clock }) => {
@@ -85,8 +102,12 @@ export default function StationMarkers() {
     });
   });
 
-  // City-scale clusters take over the display at Country View.
-  if (!chargersVisible || viewLevel === "country") return null;
+  // Country/city-scale clusters take over the display at World and Country
+  // View — individual station markers only ever belong at Station View
+  // (previously this only excluded "country", so World View was silently
+  // rendering every loaded station as a raw sprite the whole time, just
+  // visually buried under the much larger CountryClusters badges).
+  if (!chargersVisible || viewLevel !== "station") return null;
 
   return (
     <group ref={groupRef}>
