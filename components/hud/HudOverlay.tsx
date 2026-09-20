@@ -20,13 +20,14 @@ export default function HudOverlay() {
           <LiveMonitorPanel />
         </div>
       </div>
-      <div className="flex items-start justify-center">
-        <CarbonLegend />
-        <GridPriceLegend />
-      </div>
+      <div />
       <div className="flex items-end justify-between gap-4">
         <div className="pointer-events-auto w-72">
           <PriceChartPanel />
+        </div>
+        <div className="pointer-events-auto flex flex-col items-center gap-3">
+          <CarbonLegend />
+          <GridPriceLegend />
         </div>
         <div className="pointer-events-auto w-72">
           <ActivityChartPanel />

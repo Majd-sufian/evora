@@ -22,7 +22,7 @@ export default function LayerControlsPanel({ open, anchorLeft }: LayerControlsPa
 
   return (
     <div
-      className="absolute top-6 z-20 w-64 rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] p-4 shadow-lg backdrop-blur-sm transition-[transform,opacity] duration-300 ease-out"
+      className="absolute top-6 z-20 w-72 rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] p-4 shadow-lg backdrop-blur-sm transition-[transform,opacity] duration-300 ease-out"
       style={{
         left: anchorLeft,
         transform: open ? "translateX(0)" : "translateX(-16px)",

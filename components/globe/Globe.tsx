@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Stars } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import RotatingGlobe from "./RotatingGlobe";
 import Atmosphere from "./Atmosphere";
@@ -17,6 +17,7 @@ export default function Globe() {
     <Canvas camera={{ position: WORLD_VIEW_POSITION, fov: 60 }}>
       <ambientLight intensity={0.9} />
       <pointLight position={[5, 3, 5]} intensity={1.4} />
+      <Stars radius={80} depth={40} count={3000} factor={2} saturation={0} fade speed={0.3} />
       <RotatingGlobe externallyPaused={interacting} />
       <Atmosphere radius={1} />
       <CameraRig controlsRef={controlsRef} />

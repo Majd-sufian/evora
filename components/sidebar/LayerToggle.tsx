@@ -11,7 +11,7 @@ export default function LayerToggle({ label, checked, onChange }: LayerTogglePro
       onClick={onChange}
       className="flex w-full items-center justify-between gap-3 py-2"
     >
-      <span className="text-xs text-text-primary">{label}</span>
+      <span className="min-w-0 truncate text-xs text-text-primary">{label}</span>
       <span
         className={`relative h-4 w-8 shrink-0 rounded-full transition-colors ${
           checked ? "bg-cyan" : "bg-[#1A2833]"
