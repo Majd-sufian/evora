@@ -35,6 +35,7 @@ export default function StationMarkers() {
   const viewLevel = useEvoraStore((s) => s.viewLevel);
   const selectedCityCluster = useEvoraStore((s) => s.selectedCityCluster);
   const selectedStation = useEvoraStore((s) => s.selectedStation);
+  const flyToTarget = useEvoraStore((s) => s.flyToTarget);
   const setSelectedStation = useEvoraStore((s) => s.setSelectedStation);
   const setViewLevel = useEvoraStore((s) => s.setViewLevel);
   const setStationPanelOpen = useEvoraStore((s) => s.setStationPanelOpen);
@@ -48,14 +49,22 @@ export default function StationMarkers() {
       (s) => !fastChargersOnly || (s.powerKw ?? 0) >= FAST_CHARGER_MIN_KW
     );
 
-    // At Station View, only show the drilled-into cluster's members (or just
-    // the one directly-selected station) instead of every marker worldwide.
+    // At Station View, only show the drilled-into cluster's members, the one
+    // directly-selected station, or (for a geocoded fly-to) nearby stations —
+    // instead of every marker worldwide, which overlaps into an unreadable mess.
     if (viewLevel === "station") {
       if (selectedCityCluster) {
         const ids = new Set(selectedCityCluster.stationIds);
         filtered = filtered.filter((s) => ids.has(s.id));
       } else if (selectedStation) {
         filtered = filtered.filter((s) => s.id === selectedStation.id);
+      } else if (flyToTarget) {
+        const RADIUS_DEGREES = 0.5;
+        filtered = filtered.filter(
+          (s) =>
+            Math.abs(s.lat - flyToTarget.lat) <= RADIUS_DEGREES &&
+            Math.abs(s.lon - flyToTarget.lon) <= RADIUS_DEGREES
+        );
       }
     }
 
@@ -63,7 +72,7 @@ export default function StationMarkers() {
       ...station,
       position: latLonToVector3(station.lat, station.lon, GLOBE_RADIUS * SURFACE_OFFSET),
     }));
-  }, [sourceStations, fastChargersOnly, viewLevel, selectedCityCluster, selectedStation]);
+  }, [sourceStations, fastChargersOnly, viewLevel, selectedCityCluster, selectedStation, flyToTarget]);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;

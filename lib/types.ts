@@ -22,3 +22,9 @@ export type LayerState = {
   activityPulses: boolean;
   fastChargersOnly: boolean;
 };
+
+export type GeocodeResult = {
+  label: string;
+  lat: number;
+  lon: number;
+};

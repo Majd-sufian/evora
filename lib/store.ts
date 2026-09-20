@@ -10,6 +10,8 @@ type EvoraStore = {
   /** The city-scale cluster drilled into from Country View, if any. */
   selectedCityCluster: StationCluster | null;
   selectedStation: ChargingStation | null;
+  /** An arbitrary city/address searched via geocoding, not tied to our own data. */
+  flyToTarget: { lat: number; lon: number; label: string } | null;
   layers: LayerState;
   stationPanelOpen: boolean;
 
@@ -30,6 +32,7 @@ type EvoraStore = {
   setSelectedCountry: (code: string | null) => void;
   setSelectedCityCluster: (cluster: StationCluster | null) => void;
   setSelectedStation: (station: ChargingStation | null) => void;
+  flyTo: (target: { lat: number; lon: number; label: string }) => void;
   setStationPanelOpen: (open: boolean) => void;
   toggleLayer: (layer: keyof LayerState) => void;
   loadStations: () => Promise<void>;
@@ -44,6 +47,7 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   selectedCountry: null,
   selectedCityCluster: null,
   selectedStation: null,
+  flyToTarget: null,
   layers: {
     chargers: true,
     gridPrices: false,
@@ -70,6 +74,15 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   setSelectedCityCluster: (cluster) => set({ selectedCityCluster: cluster }),
   setSelectedStation: (station) => set({ selectedStation: station }),
   setStationPanelOpen: (open) => set({ stationPanelOpen: open }),
+  flyTo: (target) =>
+    set({
+      flyToTarget: target,
+      selectedCountry: null,
+      selectedCityCluster: null,
+      selectedStation: null,
+      stationPanelOpen: false,
+      viewLevel: "station",
+    }),
   toggleLayer: (layer) => {
     set((state) => {
       const next: LayerState = { ...state.layers, [layer]: !state.layers[layer] };
@@ -106,6 +119,7 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
         set({
           selectedStation: null,
           selectedCityCluster: null,
+          flyToTarget: null,
           stationPanelOpen: false,
           viewLevel: selectedCountry ? "country" : "world",
         });
