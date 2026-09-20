@@ -22,7 +22,7 @@ export default function LayerControlsPanel({ open }: LayerControlsPanelProps) {
 
   return (
     <div
-      className="absolute right-0 top-full z-20 mt-2 w-72 rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] p-4 shadow-lg backdrop-blur-sm transition-[transform,opacity] duration-300 ease-out"
+      className="absolute right-0 top-full z-20 mt-2 max-h-[min(70vh,26rem)] w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] p-4 shadow-lg backdrop-blur-sm transition-[transform,opacity] duration-300 ease-out"
       style={{
         transform: open ? "translateY(0)" : "translateY(-8px)",
         opacity: open ? 1 : 0,
