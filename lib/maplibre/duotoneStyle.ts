@@ -65,35 +65,125 @@ const LAYER_OVERRIDES: Record<string, Record<string, string>> = {
   highway_name_other: { "text-color": PALETTE.textSecondary, "text-halo-color": PALETTE.textHalo },
   highway_name_motorway: { "text-color": PALETTE.textSecondary, "text-halo-color": PALETTE.textHalo },
 
-  boundary_state: { "line-color": PALETTE.boundary },
   "boundary_country_z0-4": { "line-color": PALETTE.boundary },
   "boundary_country_z5-": { "line-color": PALETTE.boundary },
 
-  place_other: { "text-color": PALETTE.textSecondary, "text-halo-color": PALETTE.textHalo },
-  place_suburb: { "text-color": PALETTE.textSecondary, "text-halo-color": PALETTE.textHalo },
-  place_village: { "text-color": PALETTE.textSecondary, "text-halo-color": PALETTE.textHalo },
   place_town: { "text-color": PALETTE.textPrimary, "text-halo-color": PALETTE.textHalo },
   place_city: { "text-color": PALETTE.textPrimary, "text-halo-color": PALETTE.textHalo },
   place_city_large: { "text-color": PALETTE.textPrimary, "text-halo-color": PALETTE.textHalo },
-  place_state: { "text-color": PALETTE.textSecondary, "text-halo-color": PALETTE.textHalo },
-  place_country_other: { "text-color": PALETTE.textPrimary, "text-halo-color": PALETTE.textHalo },
   place_country_minor: { "text-color": PALETTE.textPrimary, "text-halo-color": PALETTE.textHalo },
   place_country_major: { "text-color": PALETTE.textPrimary, "text-halo-color": PALETTE.textHalo },
 };
 
+/** Layers dropped entirely — admin subdivisions and hyper-local place names
+ * that read as noise at the country/city granularity Evora actually needs
+ * ("we only care about country, city — not every sub-region and hamlet"). */
+const DROPPED_LAYERS = new Set([
+  "place_other",
+  "place_suburb",
+  "place_village",
+  "place_state",
+  "place_country_other",
+  "boundary_state",
+]);
+
+/** Layers gated behind a much higher minzoom than OpenFreeMap's own default —
+ * roads, rail, buildings, and piers only matter once genuinely zoomed to
+ * street level, which the app doesn't reach yet (its closest "Station View"
+ * is still country/city-scale). At the current World/Country zoom range
+ * this keeps the globe to just ocean, land, country borders, and
+ * country/city labels, instead of a dense mesh of every minor road. */
+const HIGH_MINZOOM_LAYERS = new Set([
+  "aeroway-taxiway",
+  "aeroway-runway-casing",
+  "aeroway-area",
+  "aeroway-runway",
+  "road_area_pier",
+  "road_pier",
+  "highway_path",
+  "highway_minor",
+  "highway_major_casing",
+  "highway_major_inner",
+  "highway_major_subtle",
+  "highway_motorway_casing",
+  "highway_motorway_inner",
+  "highway_motorway_subtle",
+  "railway_transit",
+  "railway_transit_dashline",
+  "railway_minor",
+  "railway_minor_dashline",
+  "railway",
+  "railway_dashline",
+  "highway_name_other",
+  "highway_name_motorway",
+  "building",
+  "road_oneway",
+  "road_oneway_opposite",
+]);
+const DETAIL_MINZOOM = 9;
+
+/** Evora only has data for 20 European countries (lib/data/countries.ts) —
+ * `maxBounds` on the map only restricts panning, not what a low-zoom globe
+ * view can already see, so place labels for the rest of the world still
+ * showed up. Filtering these layers to a rough Europe bounding polygon
+ * keeps only the labels that are actually relevant. */
+// A rough approximation, not a precise match to the 20 countries in
+// lib/data/countries.ts — an axis-aligned box can't follow Europe's actual
+// coastline/political shape, so it still catches some of Turkey/Cyprus/the
+// North African coast at the edges. Good enough to cut the obvious noise
+// (Middle East, Russia's interior, etc.) for now; a precise per-country
+// filter would need the vector tiles' own country-code property, joined
+// against COUNTRIES — a refinement for later, not blocking.
+const EUROPE_POLYGON = {
+  type: "Polygon" as const,
+  coordinates: [
+    [
+      [-11, 35],
+      [29, 35],
+      [29, 71],
+      [-11, 71],
+      [-11, 35],
+    ],
+  ],
+};
+const LABEL_LAYERS = new Set([
+  "place_town",
+  "place_city",
+  "place_city_large",
+  "place_country_minor",
+  "place_country_major",
+]);
+
 function recolorLayer(layer: LayerSpecification): LayerSpecification {
+  let next = layer;
   const overrides = LAYER_OVERRIDES[layer.id];
-  if (!overrides || !("paint" in layer)) return layer;
-  return { ...layer, paint: { ...layer.paint, ...overrides } } as LayerSpecification;
+  if (overrides && "paint" in layer) {
+    next = { ...next, paint: { ...next.paint, ...overrides } } as LayerSpecification;
+  }
+  if (HIGH_MINZOOM_LAYERS.has(layer.id)) {
+    next = { ...next, minzoom: DETAIL_MINZOOM };
+  }
+  if (LABEL_LAYERS.has(layer.id)) {
+    const withinEurope = ["within", EUROPE_POLYGON];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = (next as any).filter;
+    next = {
+      ...next,
+      filter: existing ? ["all", existing, withinEurope] : withinEurope,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+  }
+  return next;
 }
 
 /**
  * Fetches OpenFreeMap's "dark" style (a real OSM vector-tile style — same
  * underlying data source as the app's existing Nominatim address search)
  * and recolors every layer to Evora's own palette, so the base map reads as
- * part of the app rather than a generic embedded basemap. Only paint colors
- * are touched — widths, opacities, and zoom-interpolation curves from the
- * source style are left alone.
+ * part of the app rather than a generic embedded basemap. Colors, dropped
+ * layers, and minzoom gating are the only things touched — widths,
+ * opacities, and zoom-interpolation curves from the source style are left
+ * alone on anything that survives.
  */
 export async function loadDuotoneStyle(): Promise<StyleSpecification> {
   const res = await fetch("https://tiles.openfreemap.org/styles/dark");
@@ -106,10 +196,15 @@ export async function loadDuotoneStyle(): Promise<StyleSpecification> {
     ...base,
     projection: { type: "globe" },
     layers: base.layers
-      // The natural-earth raster relief layer can't be recolored via paint
-      // properties (it's a photographic texture) and clashes with a flat
-      // duotone look — drop it, keeping only the OSM vector layers.
-      .filter((layer) => layer.type !== "raster" && (!("source" in layer) || layer.source !== "ne2_shaded"))
+      .filter(
+        (layer) =>
+          // The natural-earth raster relief layer can't be recolored via
+          // paint properties (it's a photographic texture) and clashes with
+          // a flat duotone look — drop it, keeping only the OSM vector layers.
+          layer.type !== "raster" &&
+          (!("source" in layer) || layer.source !== "ne2_shaded") &&
+          !DROPPED_LAYERS.has(layer.id)
+      )
       .map(recolorLayer),
   };
 }

@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { Map as MapLibreMap, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { loadDuotoneStyle } from "@/lib/maplibre/duotoneStyle";
+import { drawStationIcon } from "@/lib/stationIconCanvas";
+import type { ChargingStation, StationStatus } from "@/lib/types";
 
 // MapLibre resolves its tile-processing worker script relative to its own
 // module's `import.meta.url` by default, which webpack/Next.js's bundling
@@ -22,7 +24,25 @@ if (typeof window !== "undefined") {
 
 // Centered over Europe, matching the existing Three.js globe's default framing.
 const INITIAL_CENTER: [number, number] = [15, 50];
-const INITIAL_ZOOM = 3.2;
+const INITIAL_ZOOM = 3.8;
+
+// Evora only covers these 20 European countries (lib/data/countries.ts) —
+// there's no data, and so no reason to let the map pan/zoom away to
+// anywhere else on Earth. maxBounds alone only restricts panning, not what
+// a low-zoom globe view already has in frame, so this also sets a minZoom
+// floor — combined with the label filter in duotoneStyle.ts, the rest of
+// the world is never in view or labeled.
+const EUROPE_BOUNDS: [[number, number], [number, number]] = [
+  [-11, 35],
+  [29, 71],
+];
+const MIN_ZOOM = 3.6;
+
+const STATUS_COLOR: Record<StationStatus, string> = {
+  available: "#00ff88",
+  "in-use": "#00d4ff",
+  unavailable: "#ff3355",
+};
 
 type MapLibreGlobeProps = {
   onReady?: () => void;
@@ -31,9 +51,9 @@ type MapLibreGlobeProps = {
 /**
  * Phase 1 of the MapLibre migration (see specs/PROJECT_STATUS.md): a real
  * OSM vector-tile globe, recolored to Evora's palette, replacing the
- * previous hand-rolled Three.js sphere+shader. Not yet wired to the app's
- * view-level/camera state, station markers, or clustering — this is the
- * base map layer only.
+ * previous hand-rolled Three.js sphere+shader. Station icons here are a
+ * first look at real data on the map (plain symbol layer, `icon-allow-
+ * overlap`) — not yet the real clustering/interaction system.
  */
 export default function MapLibreGlobe({ onReady }: MapLibreGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,13 +71,57 @@ export default function MapLibreGlobe({ onReady }: MapLibreGlobeProps) {
           style,
           center: INITIAL_CENTER,
           zoom: INITIAL_ZOOM,
+          minZoom: MIN_ZOOM,
+          maxBounds: EUROPE_BOUNDS,
           attributionControl: { compact: true },
           dragRotate: true,
           touchPitch: false,
         });
         mapRef.current = map;
-        map.once("load", () => onReady?.());
         map.on("error", (e) => console.error("MapLibre error event", e.error));
+
+        map.once("load", async () => {
+          (Object.entries(STATUS_COLOR) as [StationStatus, string][]).forEach(([status, color]) => {
+            const canvas = drawStationIcon(color);
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            map.addImage(`station-${status}`, imageData, { pixelRatio: 2 });
+          });
+
+          try {
+            const res = await fetch("/api/stations");
+            const data = (await res.json()) as { stations: ChargingStation[] };
+            map.addSource("stations", {
+              type: "geojson",
+              data: {
+                type: "FeatureCollection",
+                features: data.stations.map((s) => ({
+                  type: "Feature",
+                  geometry: { type: "Point", coordinates: [s.lon, s.lat] },
+                  properties: { status: s.status },
+                })),
+              },
+            });
+            map.addLayer({
+              id: "station-icons",
+              type: "symbol",
+              source: "stations",
+              layout: {
+                "icon-image": ["concat", "station-", ["get", "status"]],
+                // Small at the current low zoom (thousands of stations are
+                // still visible at once here — real clustering is a later
+                // phase) growing as the user zooms in closer.
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 3.6, 0.07, 6, 0.16, 9, 0.32],
+                "icon-allow-overlap": true,
+              },
+            });
+          } catch (error) {
+            console.error("Failed to load station icons", error);
+          }
+
+          onReady?.();
+        });
       })
       .catch((error) => {
         console.error("Failed to load MapLibre duotone style", error);
