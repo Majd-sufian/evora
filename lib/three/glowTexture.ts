@@ -54,6 +54,33 @@ export function getRingIconTexture(): THREE.Texture {
   const cx = size / 2;
   const cy = size / 2;
 
+  // Dark contrast halo, drawn first and underneath. This texture is shared
+  // and tinted per-marker via the sprite material's `color` (multiplied
+  // per-texel), so a near-black halo stays near-black regardless of tint —
+  // giving every marker a consistent dark outline that reads clearly
+  // against the globe's light-blue land as well as the black ocean, instead
+  // of a same-brightness glow blending into lighter terrain.
+  ctx.save();
+  ctx.strokeStyle = "rgba(3,8,12,0.92)";
+  ctx.lineWidth = size * 0.11;
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * 0.36, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = "rgba(3,8,12,0.92)";
+  ctx.beginPath();
+  BOLT_POINTS.forEach(([x, y], i) => {
+    const px = cx + (x * size - cx) * 1.22;
+    const py = cy + (y * size - cy) * 1.22;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
   ctx.save();
   ctx.shadowColor = "rgba(255,255,255,0.95)";
   ctx.shadowBlur = size * 0.12;
