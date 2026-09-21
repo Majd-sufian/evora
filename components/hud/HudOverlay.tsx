@@ -26,7 +26,7 @@ export default function HudOverlay() {
       </div>
 
       {/* Tablet/desktop (768px+): original side-by-side row, with the layer
-          control stacked above the monitor panel instead of floating alone
+          control stacked below the monitor panel instead of floating alone
           in the empty space below — keeps it near the top HUD cluster. */}
       <div className="hidden md:flex md:flex-row md:items-start md:justify-between md:gap-4">
         <div className="pointer-events-auto md:w-56 lg:w-64">
@@ -36,11 +36,11 @@ export default function HudOverlay() {
           <SearchBar />
         </div>
         <div className="flex flex-col items-end gap-2 md:w-56 lg:w-64">
-          <div className="pointer-events-auto">
-            <LayerControl />
-          </div>
           <div className="pointer-events-auto w-full">
             <LiveMonitorPanel />
+          </div>
+          <div className="pointer-events-auto">
+            <LayerControl />
           </div>
         </div>
       </div>
