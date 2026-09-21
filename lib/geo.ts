@@ -18,13 +18,21 @@ export function latLonToVector3(lat: number, lon: number, radius: number): Vecto
 
 /**
  * Spreads `count` markers that would otherwise sit on the exact same sphere
- * position (e.g. several real stations at one parking lot/depot) into a
- * small ring around that shared point, tangent to the sphere surface, so
- * each stays visually distinct and individually clickable instead of
- * stacking into one unclickable blob. Returns `count` positions in a fixed,
+ * position (e.g. several real stations at one parking lot/depot) into
+ * concentric rings around that shared point, tangent to the sphere surface,
+ * so each stays visually distinct and individually clickable instead of
+ * stacking into one unclickable blob. Up to `pointsPerRing` markers share a
+ * ring at `ringRadius`; any more spill into a second ring at `2*ringRadius`,
+ * and so on, so this stays legible even for a cluster with a couple dozen
+ * members rather than just a handful. Returns `count` positions in a fixed,
  * deterministic order (no randomness, so re-renders don't jitter).
  */
-export function spiderfyPositions(center: Vector3, count: number, ringRadius: number): Vector3[] {
+export function spiderfyPositions(
+  center: Vector3,
+  count: number,
+  ringRadius: number,
+  pointsPerRing = 8
+): Vector3[] {
   if (count <= 1) return [center.clone()];
 
   const normal = center.clone().normalize();
@@ -32,12 +40,22 @@ export function spiderfyPositions(center: Vector3, count: number, ringRadius: nu
   const tangentA = new Vector3().crossVectors(normal, arbitrary).normalize();
   const tangentB = new Vector3().crossVectors(normal, tangentA).normalize();
 
-  return Array.from({ length: count }, (_, i) => {
-    const angle = (i / count) * Math.PI * 2;
-    const offset = tangentA
-      .clone()
-      .multiplyScalar(Math.cos(angle) * ringRadius)
-      .add(tangentB.clone().multiplyScalar(Math.sin(angle) * ringRadius));
-    return center.clone().add(offset);
-  });
+  const positions: Vector3[] = [];
+  let placed = 0;
+  let ring = 0;
+  while (placed < count) {
+    const inThisRing = Math.min(pointsPerRing, count - placed);
+    const radius = ringRadius * (ring + 1);
+    for (let i = 0; i < inThisRing; i++) {
+      const angle = (i / inThisRing) * Math.PI * 2;
+      const offset = tangentA
+        .clone()
+        .multiplyScalar(Math.cos(angle) * radius)
+        .add(tangentB.clone().multiplyScalar(Math.sin(angle) * radius));
+      positions.push(center.clone().add(offset));
+    }
+    placed += inThisRing;
+    ring++;
+  }
+  return positions;
 }

@@ -13,11 +13,19 @@ const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 1.02;
 const MARKER_SIZE = 0.028;
 const FAST_CHARGER_MIN_KW = 50;
-// Stations within ~110m of each other (3 decimal degrees) are treated as
-// "the same lot" and spread into a small ring so each stays clickable
-// instead of stacking exactly on top of one another.
-const SPIDERFY_GROUP_PRECISION = 3;
-const SPIDERFY_RING_RADIUS = MARKER_SIZE * 2;
+// Station View's camera never gets close enough to the surface (it's capped
+// well outside the atmosphere glow shell) for real lat/lon differences of a
+// few hundred meters to a few km to read as visually distinct — at that
+// distance a handful of stations in the same town all project to
+// essentially one screen point. So whenever Station View is showing more
+// than one station as a group (a drilled-into cluster, or several stations
+// near a geocoded search result), they're always arranged on a ring around
+// the group's true centroid instead of at their own real positions — an
+// intentionally inaccurate but always-legible layout, since Station View's
+// job here is letting the user pick one, not convey precise sub-cluster
+// geography (the cluster's own badge in Country View already communicated
+// the aggregate area).
+const CLUSTER_RING_RADIUS = MARKER_SIZE * 4;
 
 const STATUS_COLOR: Record<StationStatus, string> = {
   available: "#00FF88",
@@ -50,45 +58,41 @@ export default function StationMarkers() {
   const sourceStations = stationsStatus === "ready" && stations.length > 0 ? stations : MOCK_STATIONS;
 
   const markers = useMemo(() => {
-    let filtered = sourceStations.filter(
+    const eligible = sourceStations.filter(
       (s) => !fastChargersOnly || (s.powerKw ?? 0) >= FAST_CHARGER_MIN_KW
     );
+    if (viewLevel !== "station") return [];
 
-    // At Station View, only show the drilled-into cluster's members, the one
-    // directly-selected station, or (for a geocoded fly-to) nearby stations —
-    // instead of every marker worldwide, which overlaps into an unreadable mess.
-    if (viewLevel === "station") {
-      if (selectedCityCluster) {
-        const ids = new Set(selectedCityCluster.stationIds);
-        filtered = filtered.filter((s) => ids.has(s.id));
-      } else if (selectedStation) {
-        filtered = filtered.filter((s) => s.id === selectedStation.id);
-      } else if (flyToTarget) {
-        const RADIUS_DEGREES = 0.5;
-        filtered = filtered.filter(
-          (s) =>
-            Math.abs(s.lat - flyToTarget.lat) <= RADIUS_DEGREES &&
-            Math.abs(s.lon - flyToTarget.lon) <= RADIUS_DEGREES
-        );
-      }
-    }
-
-    // Group near-identical coordinates (e.g. several real chargers at one
-    // depot/parking lot) so they can be spiderfied apart instead of
-    // rendering exactly on top of each other.
-    const groups = new Map<string, typeof filtered>();
-    for (const station of filtered) {
-      const key = `${station.lat.toFixed(SPIDERFY_GROUP_PRECISION)}:${station.lon.toFixed(SPIDERFY_GROUP_PRECISION)}`;
-      const bucket = groups.get(key);
-      if (bucket) bucket.push(station);
-      else groups.set(key, [station]);
-    }
-
-    return Array.from(groups.values()).flatMap((group) => {
-      const center = latLonToVector3(group[0].lat, group[0].lon, GLOBE_RADIUS * SURFACE_OFFSET);
-      const positions = spiderfyPositions(center, group.length, SPIDERFY_RING_RADIUS);
+    function ringAround(center: THREE.Vector3, group: typeof eligible) {
+      const positions = spiderfyPositions(center, group.length, CLUSTER_RING_RADIUS);
       return group.map((station, i) => ({ ...station, position: positions[i] }));
-    });
+    }
+
+    if (selectedCityCluster) {
+      const ids = new Set(selectedCityCluster.stationIds);
+      const members = eligible.filter((s) => ids.has(s.id));
+      const center = latLonToVector3(selectedCityCluster.lat, selectedCityCluster.lon, GLOBE_RADIUS * SURFACE_OFFSET);
+      return ringAround(center, members);
+    }
+
+    if (selectedStation) {
+      const station = eligible.find((s) => s.id === selectedStation.id);
+      if (!station) return [];
+      return [{ ...station, position: latLonToVector3(station.lat, station.lon, GLOBE_RADIUS * SURFACE_OFFSET) }];
+    }
+
+    if (flyToTarget) {
+      const RADIUS_DEGREES = 0.5;
+      const nearby = eligible.filter(
+        (s) =>
+          Math.abs(s.lat - flyToTarget.lat) <= RADIUS_DEGREES &&
+          Math.abs(s.lon - flyToTarget.lon) <= RADIUS_DEGREES
+      );
+      const center = latLonToVector3(flyToTarget.lat, flyToTarget.lon, GLOBE_RADIUS * SURFACE_OFFSET);
+      return ringAround(center, nearby);
+    }
+
+    return [];
   }, [sourceStations, fastChargersOnly, viewLevel, selectedCityCluster, selectedStation, flyToTarget]);
 
   useFrame(({ clock }) => {
