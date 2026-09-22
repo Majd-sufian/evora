@@ -22,7 +22,7 @@ const PALETTE = {
 
 /** Maps each OpenFreeMap "dark" style layer id to the paint properties to
  * overwrite with Evora's palette. Layers not listed here (icons, casings
- * that only affect width/dasharray) are left as-is — only recoloring, never
+ * that only affect width/dasharray) are left as-is ... only recoloring, never
  * touching layout-affecting properties like width/opacity/blur. */
 const LAYER_OVERRIDES: Record<string, Record<string, string>> = {
   background: { "background-color": PALETTE.ocean },
@@ -75,9 +75,9 @@ const LAYER_OVERRIDES: Record<string, Record<string, string>> = {
   place_country_major: { "text-color": PALETTE.textPrimary, "text-halo-color": PALETTE.textHalo },
 };
 
-/** Layers dropped entirely — admin subdivisions and hyper-local place names
+/** Layers dropped entirely ... admin subdivisions and hyper-local place names
  * that read as noise at the country/city granularity Evora actually needs
- * ("we only care about country, city — not every sub-region and hamlet"). */
+ * ("we only care about country, city ... not every sub-region and hamlet"). */
 const DROPPED_LAYERS = new Set([
   "place_other",
   "place_suburb",
@@ -87,7 +87,7 @@ const DROPPED_LAYERS = new Set([
   "boundary_state",
 ]);
 
-/** Layers gated behind a much higher minzoom than OpenFreeMap's own default —
+/** Layers gated behind a much higher minzoom than OpenFreeMap's own default ...
  * roads, rail, buildings, and piers only matter once genuinely zoomed to
  * street level, which the app doesn't reach yet (its closest "Station View"
  * is still country/city-scale). At the current World/Country zoom range
@@ -122,18 +122,18 @@ const HIGH_MINZOOM_LAYERS = new Set([
 ]);
 const DETAIL_MINZOOM = 9;
 
-/** Evora only has data for 20 European countries (lib/data/countries.ts) —
+/** Evora only has data for 20 European countries (lib/data/countries.ts) ...
  * `maxBounds` on the map only restricts panning, not what a low-zoom globe
  * view can already see, so place labels for the rest of the world still
  * showed up. Filtering these layers to a rough Europe bounding polygon
  * keeps only the labels that are actually relevant. */
 // A rough approximation, not a precise match to the 20 countries in
-// lib/data/countries.ts — an axis-aligned box can't follow Europe's actual
+// lib/data/countries.ts ... an axis-aligned box can't follow Europe's actual
 // coastline/political shape, so it still catches some of Turkey/Cyprus/the
 // North African coast at the edges. Good enough to cut the obvious noise
 // (Middle East, Russia's interior, etc.) for now; a precise per-country
 // filter would need the vector tiles' own country-code property, joined
-// against COUNTRIES — a refinement for later, not blocking.
+// against COUNTRIES ... a refinement for later, not blocking.
 const EUROPE_POLYGON = {
   type: "Polygon" as const,
   coordinates: [
@@ -177,11 +177,11 @@ function recolorLayer(layer: LayerSpecification): LayerSpecification {
 }
 
 /**
- * Fetches OpenFreeMap's "dark" style (a real OSM vector-tile style — same
+ * Fetches OpenFreeMap's "dark" style (a real OSM vector-tile style ... same
  * underlying data source as the app's existing Nominatim address search)
  * and recolors every layer to Evora's own palette, so the base map reads as
  * part of the app rather than a generic embedded basemap. Colors, dropped
- * layers, and minzoom gating are the only things touched — widths,
+ * layers, and minzoom gating are the only things touched ... widths,
  * opacities, and zoom-interpolation curves from the source style are left
  * alone on anything that survives.
  */
@@ -200,7 +200,7 @@ export async function loadDuotoneStyle(): Promise<StyleSpecification> {
         (layer) =>
           // The natural-earth raster relief layer can't be recolored via
           // paint properties (it's a photographic texture) and clashes with
-          // a flat duotone look — drop it, keeping only the OSM vector layers.
+          // a flat duotone look ... drop it, keeping only the OSM vector layers.
           layer.type !== "raster" &&
           (!("source" in layer) || layer.source !== "ne2_shaded") &&
           !DROPPED_LAYERS.has(layer.id)

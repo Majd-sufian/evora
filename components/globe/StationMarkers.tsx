@@ -15,12 +15,12 @@ const MARKER_SIZE = 0.028;
 const FAST_CHARGER_MIN_KW = 50;
 // Station View's camera never gets close enough to the surface (it's capped
 // well outside the atmosphere glow shell) for real lat/lon differences of a
-// few hundred meters to a few km to read as visually distinct — at that
+// few hundred meters to a few km to read as visually distinct ... at that
 // distance a handful of stations in the same town all project to
 // essentially one screen point. So whenever Station View is showing more
 // than one station as a group (a drilled-into cluster, or several stations
 // near a geocoded search result), they're always arranged on a ring around
-// the group's true centroid instead of at their own real positions — an
+// the group's true centroid instead of at their own real positions ... an
 // intentionally inaccurate but always-legible layout, since Station View's
 // job here is letting the user pick one, not convey precise sub-cluster
 // geography (the cluster's own badge in Country View already communicated
@@ -107,7 +107,7 @@ export default function StationMarkers() {
   });
 
   // Country/city-scale clusters take over the display at World and Country
-  // View — individual station markers only ever belong at Station View
+  // View ... individual station markers only ever belong at Station View
   // (previously this only excluded "country", so World View was silently
   // rendering every loaded station as a raw sprite the whole time, just
   // visually buried under the much larger CountryClusters badges).

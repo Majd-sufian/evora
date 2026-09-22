@@ -39,8 +39,8 @@ export default function CameraRig({
   const goBack = useEvoraStore((s) => s.goBack);
   const exitStationView = useEvoraStore((s) => s.exitStationView);
   const transitionRef = useRef<Transition | null>(null);
-  // Remembers where the camera actually was at World View — including any
-  // manual OrbitControls drag — so returning to World View from Country or
+  // Remembers where the camera actually was at World View ... including any
+  // manual OrbitControls drag ... so returning to World View from Country or
   // Station View restores that exact spot instead of resetting to the
   // default framing every time.
   const lastWorldViewPositionRef = useRef<THREE.Vector3 | null>(null);
@@ -52,7 +52,7 @@ export default function CameraRig({
 
     if (viewLevel === "world") {
       // A previously-saved position already has whatever aspect adjustment
-      // was in effect when it was captured — only the fresh default needs
+      // was in effect when it was captured ... only the fresh default needs
       // `fit` applied here.
       target = lastWorldViewPositionRef.current?.clone() ?? new THREE.Vector3(...WORLD_VIEW_POSITION).multiplyScalar(fit);
     } else if (viewLevel === "station" && (selectedStation || selectedCityCluster || flyToTarget)) {
@@ -107,7 +107,7 @@ export default function CameraRig({
       // Natural zoom-out: OrbitControls lets the camera scroll/drag freely
       // regardless of viewLevel, so without this a user could zoom the
       // camera well past Station or Country View's own distance while the
-      // filtered marker set stayed exactly as it was — looking broken/empty.
+      // filtered marker set stayed exactly as it was ... looking broken/empty.
       // Thresholds scale with the same aspect-fit multiplier as the targets
       // above, so this still triggers at the right relative zoom on phones.
       const fit = aspectDistanceMultiplier(size.width / size.height);

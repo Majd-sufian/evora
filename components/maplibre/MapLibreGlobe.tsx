@@ -10,10 +10,10 @@ import type { ChargingStation, StationStatus } from "@/lib/types";
 // MapLibre resolves its tile-processing worker script relative to its own
 // module's `import.meta.url` by default, which webpack/Next.js's bundling
 // doesn't preserve correctly (the worker request 404s, and the browser
-// rejects the resulting HTML fallback as an invalid JS module — silently
+// rejects the resulting HTML fallback as an invalid JS module ... silently
 // leaving every vector tile unparsed, so only the flat background paints).
 // public/maplibre-gl-worker.mjs (+ its own relative import,
-// public/maplibre-gl-shared.mjs — the worker fails to load without it too,
+// public/maplibre-gl-shared.mjs ... the worker fails to load without it too,
 // with an unhelpfully blank error event either way) are copies of the
 // matching files in node_modules/maplibre-gl/dist/, served as normal static
 // assets at a stable URL instead. Re-copy both if maplibre-gl is upgraded
@@ -26,11 +26,11 @@ if (typeof window !== "undefined") {
 const INITIAL_CENTER: [number, number] = [15, 50];
 const INITIAL_ZOOM = 3.8;
 
-// Evora only covers these 20 European countries (lib/data/countries.ts) —
+// Evora only covers these 20 European countries (lib/data/countries.ts) ...
 // there's no data, and so no reason to let the map pan/zoom away to
 // anywhere else on Earth. maxBounds alone only restricts panning, not what
 // a low-zoom globe view already has in frame, so this also sets a minZoom
-// floor — combined with the label filter in duotoneStyle.ts, the rest of
+// floor ... combined with the label filter in duotoneStyle.ts, the rest of
 // the world is never in view or labeled.
 const EUROPE_BOUNDS: [[number, number], [number, number]] = [
   [-11, 35],
@@ -53,7 +53,7 @@ type MapLibreGlobeProps = {
  * OSM vector-tile globe, recolored to Evora's palette, replacing the
  * previous hand-rolled Three.js sphere+shader. Station icons here are a
  * first look at real data on the map (plain symbol layer, `icon-allow-
- * overlap`) — not yet the real clustering/interaction system.
+ * overlap`) ... not yet the real clustering/interaction system.
  */
 export default function MapLibreGlobe({ onReady }: MapLibreGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -110,7 +110,7 @@ export default function MapLibreGlobe({ onReady }: MapLibreGlobeProps) {
               layout: {
                 "icon-image": ["concat", "station-", ["get", "status"]],
                 // Small at the current low zoom (thousands of stations are
-                // still visible at once here — real clustering is a later
+                // still visible at once here ... real clustering is a later
                 // phase) growing as the user zooms in closer.
                 "icon-size": ["interpolate", ["linear"], ["zoom"], 3.6, 0.07, 6, 0.16, 9, 0.32],
                 "icon-allow-overlap": true,
@@ -136,7 +136,7 @@ export default function MapLibreGlobe({ onReady }: MapLibreGlobeProps) {
   }, []);
 
   // maplibre-gl.css sets `.maplibregl-map { position: relative }` on this
-  // container (its own class, added by the Map constructor) — which, being
+  // container (its own class, added by the Map constructor) ... which, being
   // same-specificity as Tailwind's `.absolute`, can win the cascade
   // depending on stylesheet load order and collapse this div to 0 height.
   // An inline style always wins regardless of load order.

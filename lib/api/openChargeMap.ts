@@ -4,11 +4,11 @@ import { COUNTRIES } from "@/lib/data/countries";
 const OCM_BASE_URL = "https://api.openchargemap.io/v3/poi/";
 const OCM_REFERENCE_URL = "https://api.openchargemap.io/v3/referencedata/";
 // OpenChargeMap's default per-country ordering isn't geographically
-// balanced — verified live that a 30-result cap returned zero stations
+// balanced ... verified live that a 30-result cap returned zero stations
 // within 30km of Munich (a city that genuinely has ~25 in the full data).
 // 200 (paired with compact=true below) was chosen as a balance: it
 // surfaces 14 real Munich-area stations (vs 0 before) while keeping the
-// total /api/stations payload in the ~1MB range rather than 500's ~2.5MB —
+// total /api/stations payload in the ~1MB range rather than 500's ~2.5MB ...
 // a real per-station lazy-load-per-country architecture would scale
 // better still, but is a larger change than this fix warrants right now.
 const MAX_RESULTS_PER_COUNTRY = 200;
@@ -51,7 +51,7 @@ type OcmPoi = {
   OperatorInfo?: { Title?: string };
 };
 
-/** ID -> display name lookups, built once from /v3/referencedata/ — needed
+/** ID -> display name lookups, built once from /v3/referencedata/ ... needed
  * because the per-country POI fetch below runs with compact=true (a ~75%
  * smaller payload than the verbose form), which drops the nested
  * OperatorInfo/ConnectionType objects and leaves only their numeric IDs. */
@@ -123,7 +123,7 @@ async function fetchRawPoisForCountry(countryCode: string, apiKey: string): Prom
   url.searchParams.set("maxresults", String(MAX_RESULTS_PER_COUNTRY));
   // compact=true cuts the payload by ~75% (verified: 960KB -> 235KB for a
   // 300-result Germany request) by dropping nested OperatorInfo/
-  // ConnectionType objects in favor of their bare IDs — reconstructed in
+  // ConnectionType objects in favor of their bare IDs ... reconstructed in
   // mapPoiToStation via the reference data fetched alongside this.
   url.searchParams.set("compact", "true");
   url.searchParams.set("verbose", "false");
@@ -144,7 +144,7 @@ export async function fetchAllStations(): Promise<ChargingStation[]> {
   }
 
   // Reference data (for operator/connector names) and every country's raw
-  // POI list run in parallel — the reference lookup is only needed once all
+  // POI list run in parallel ... the reference lookup is only needed once all
   // the raw data is in hand for mapping, not before the fetches can start.
   const [reference, countryResults] = await Promise.all([
     fetchReferenceData(apiKey),

@@ -40,7 +40,7 @@ type EvoraStore = {
   loadGridPrices: () => Promise<void>;
   /** Steps back one zoom level: station -> country (or world) -> world. */
   goBack: () => void;
-  /** Leaves Station View entirely in one step — used when the camera is
+  /** Leaves Station View entirely in one step ... used when the camera is
    * manually zoomed out past it, unlike goBack() which first un-selects a
    * single station before leaving the cluster on an explicit click. */
   exitStationView: () => void;
@@ -176,7 +176,7 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
         byCountry[entry.countryCode] = entry.hourly;
       }
       // A 200 response with zero countries populated means every upstream
-      // ENTSO-E fetch failed (see lib/api/entsoe.ts) — treat that as
+      // ENTSO-E fetch failed (see lib/api/entsoe.ts) ... treat that as
       // unavailable rather than "ready", so the UI doesn't imply live price
       // coloring is active when nothing actually loaded.
       const status: DataStatus = Object.keys(byCountry).length > 0 ? "ready" : "error";

@@ -66,7 +66,7 @@ export default function Atmosphere({ radius = 1 }: { radius?: number }) {
       <GlowShell radius={radius} scale={1.03} power={9} bias={0.94} strength={4} color="#00D4FF" />
       {/* Thin, soft limb right at the globe's edge. */}
       <GlowShell radius={radius} scale={1.015} power={2.2} bias={0.82} strength={0.7} color="#9FE0F0" />
-      {/* Faint, soft outer haze — subtle, not a glowing halo. */}
+      {/* Faint, soft outer haze ... subtle, not a glowing halo. */}
       <GlowShell radius={radius} scale={1.1} power={4.5} bias={0.6} strength={0.2} color="#5AC8E0" />
     </>
   );

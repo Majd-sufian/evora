@@ -27,7 +27,7 @@ export default function HudOverlay() {
 
       {/* Tablet/desktop (768px+): original side-by-side row, with the layer
           control stacked below the monitor panel instead of floating alone
-          in the empty space below — keeps it near the top HUD cluster. */}
+          in the empty space below ... keeps it near the top HUD cluster. */}
       <div className="hidden md:flex md:flex-row md:items-start md:justify-between md:gap-4">
         <div className="pointer-events-auto md:w-56 lg:w-64">
           <NetworkStatsPanel />
@@ -45,7 +45,7 @@ export default function HudOverlay() {
         </div>
       </div>
 
-      {/* Charts + legends are desktop/tablet-only — hidden on mobile to keep the simplified view uncluttered. */}
+      {/* Charts + legends are desktop/tablet-only ... hidden on mobile to keep the simplified view uncluttered. */}
       <div className="mt-auto hidden items-end justify-between gap-3 md:flex md:gap-4">
         <div className="pointer-events-auto w-56 lg:w-72">
           <PriceChartPanel />

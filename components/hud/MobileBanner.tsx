@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-/** Shown only below the spec's 768px tablet cutoff (md:hidden), per the "mobile banner + simplified view" spec — dismissible, never blocks interaction with the map underneath. */
+/** Shown only below the spec's 768px tablet cutoff (md:hidden), per the "mobile banner + simplified view" spec ... dismissible, never blocks interaction with the map underneath. */
 export default function MobileBanner() {
   const [dismissed, setDismissed] = useState(false);
 

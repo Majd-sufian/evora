@@ -21,7 +21,7 @@ export const ZOOM_TRANSITION_MS = 1500;
 // All three view distances above were tuned against a landscape-ish aspect
 // ratio. A PerspectiveCamera's `fov` is its VERTICAL field of view, so on a
 // narrower (portrait, aspect < 1) viewport the horizontal FOV shrinks well
-// below what these distances assume — the globe (which needs equal
+// below what these distances assume ... the globe (which needs equal
 // clearance in both directions) ends up overflowing left/right. Backing the
 // camera further away on narrow aspects compensates without touching `fov`
 // (which would otherwise introduce fisheye-style vertical distortion).

@@ -19,7 +19,7 @@ export default function Home() {
   const stationsStatus = useEvoraStore((s) => s.stationsStatus);
   const gridPricesStatus = useEvoraStore((s) => s.gridPricesStatus);
 
-  // "error" counts as settled (not stuck loading forever) — an honest
+  // "error" counts as settled (not stuck loading forever) ... an honest
   // failed/empty state is fine to reveal; a transient mock-data flash isn't.
   const stationsSettled = stationsStatus === "ready" || stationsStatus === "error";
   const gridPricesSettled = gridPricesStatus === "ready" || gridPricesStatus === "error";

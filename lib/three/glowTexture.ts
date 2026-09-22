@@ -56,7 +56,7 @@ export function getRingIconTexture(): THREE.Texture {
 
   // Dark contrast halo, drawn first and underneath. This texture is shared
   // and tinted per-marker via the sprite material's `color` (multiplied
-  // per-texel), so a near-black halo stays near-black regardless of tint —
+  // per-texel), so a near-black halo stays near-black regardless of tint ...
   // giving every marker a consistent dark outline that reads clearly
   // against the globe's light-blue land as well as the black ocean, instead
   // of a same-brightness glow blending into lighter terrain.

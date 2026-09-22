@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Evora — European EV Intelligence, Live.",
+  title: "Evora ... European EV Intelligence, Live.",
   description:
     "A real-time EV charging intelligence dashboard for Europe. Portfolio project by Majd Sufyan.",
 };

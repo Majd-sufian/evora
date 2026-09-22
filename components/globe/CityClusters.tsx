@@ -18,7 +18,7 @@ const FAST_CHARGER_MIN_KW = 50;
 
 // Sized by both how many stations a cluster holds and how much ground it
 // actually spans, so a cluster covering a wider area reads as visually
-// bigger rather than just denser — a rough stand-in for a boundary ring.
+// bigger rather than just denser ... a rough stand-in for a boundary ring.
 function clusterSize(count: number, spreadDegrees: number) {
   return MIN_SIZE + Math.sqrt(count) * SIZE_SCALE_FACTOR + spreadDegrees * SPREAD_SCALE_FACTOR;
 }

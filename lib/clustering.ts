@@ -6,12 +6,12 @@ export type StationCluster = {
   lon: number;
   stationIds: string[];
   count: number;
-  /** Radius (degrees) from centroid to the farthest member — how much ground this cluster actually covers, not just how many stations it holds. */
+  /** Radius (degrees) from centroid to the farthest member ... how much ground this cluster actually covers, not just how many stations it holds. */
   spreadDegrees: number;
 };
 
 const MIN_CELL_DEGREES = 0.05;
-// Raised from an earlier 8 — verified against real Romania data (200
+// Raised from an earlier 8 ... verified against real Romania data (200
 // stations, genuinely scattered with one dense pocket) that an 8-station cap
 // mathematically forces at least 25 clusters even in the best case, which is
 // exactly the "overwhelming, overlapping badges" bug reported live. 20
@@ -21,7 +21,7 @@ const MIN_CELL_DEGREES = 0.05;
 const MAX_STATIONS_PER_CLUSTER = 20;
 // A country with hundreds of real stations can still resolve into dozens of
 // small clusters even with adaptive cell sizing and the relaxed per-cluster
-// cap above — fine per-cluster, but as a simultaneously-visible set it reads
+// cap above ... fine per-cluster, but as a simultaneously-visible set it reads
 // as an overwhelming, overlapping mess. Capping the visible count and
 // coarsening the grid until clusters fit under it keeps Country View
 // legible; each cluster just represents more ground when there's genuinely
@@ -29,13 +29,13 @@ const MAX_STATIONS_PER_CLUSTER = 20;
 //
 // 28 (not a rounder, more aspirational number) was chosen empirically:
 // tested against real Romania data (200 genuinely unevenly-scattered
-// stations, one dense pocket) at base cell sizes from 1 to 30 degrees —
+// stations, one dense pocket) at base cell sizes from 1 to 30 degrees ...
 // geographic recursive subdivision plateaus around 26-31 clusters no matter
 // how coarse the starting grid gets, because it keeps respecting real
 // geographic shape at each split rather than arbitrarily chunking by count.
 // Getting meaningfully lower (the original 16 target) would need giving up
 // on that geographic coherence, or a proper screen-space decluttering pass
-// — see PROJECT_STATUS.md's map-detail section for why that's better solved
+// ... see PROJECT_STATUS.md's map-detail section for why that's better solved
 // by migrating to a real vector-tile clustering library than hand-rolled
 // here.
 const MAX_VISIBLE_CLUSTERS = 28;
@@ -72,7 +72,7 @@ function subdivide(stations: ChargingStation[], cellDegrees: number, depth: numb
       result.push(...subdivide(members, cellDegrees / 2, depth + 1));
     } else if (tooBig) {
       // Hit the grid's minimum resolution and members are still packed
-      // tighter than that — geography alone can't separate them any
+      // tighter than that ... geography alone can't separate them any
       // further, so fall back to splitting by count. Keeps the "no cluster
       // stands in for an unreasonable pile of stations" guarantee airtight
       // even for a genuinely hyper-dense cluster of charging points.
@@ -105,7 +105,7 @@ function adaptiveCellSize(stationCount: number): number {
  * members. Cell size adapts to local density, and any cell that still ends
  * up holding more than MAX_STATIONS_PER_CLUSTER stations is recursively
  * subdivided (down to MIN_CELL_DEGREES) so no single marker ever represents
- * an unreasonably large — or large-area — group of stations.
+ * an unreasonably large ... or large-area ... group of stations.
  *
  * When called with the default (density-adaptive) cell size, the result is
  * also capped to MAX_VISIBLE_CLUSTERS: if clustering still produces more
@@ -113,7 +113,7 @@ function adaptiveCellSize(stationCount: number): number {
  * (up to MAX_BASE_CELL_DEGREES) and clustering re-runs, so a very dense
  * country still reads as a legible handful of clusters rather than an
  * overlapping crowd. An explicitly-passed baseCellDegrees is respected
- * exactly, with no auto-coarsening — used where deterministic, uncapped
+ * exactly, with no auto-coarsening ... used where deterministic, uncapped
  * output matters (e.g. tests).
  */
 export function clusterStations(stations: ChargingStation[], baseCellDegrees?: number): StationCluster[] {
