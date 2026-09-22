@@ -55,7 +55,7 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   layers: {
     chargers: true,
     gridPrices: false,
-    carbonIntensity: false,
+    carbonIntensity: true,
     activityPulses: true,
     fastChargersOnly: false,
   },
