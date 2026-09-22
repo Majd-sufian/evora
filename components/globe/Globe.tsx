@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
-import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import RotatingGlobe from "./RotatingGlobe";
 import Atmosphere from "./Atmosphere";
 import CameraRig from "./CameraRig";
+import { orbitControlsRef } from "@/lib/three/orbitControlsRef";
 import { MAX_ORBIT_DISTANCE, STATION_VIEW_DISTANCE, WORLD_VIEW_POSITION } from "@/lib/three/viewConstants";
 
 type GlobeProps = {
@@ -15,7 +15,6 @@ type GlobeProps = {
 
 export default function Globe({ onReady }: GlobeProps) {
   const [interacting, setInteracting] = useState(false);
-  const controlsRef = useRef<OrbitControlsImpl>(null);
 
   return (
     <Canvas camera={{ position: WORLD_VIEW_POSITION, fov: 60 }} onCreated={() => onReady?.()}>
@@ -24,9 +23,11 @@ export default function Globe({ onReady }: GlobeProps) {
       <Stars radius={80} depth={40} count={3000} factor={2} saturation={0} fade speed={0.3} />
       <RotatingGlobe externallyPaused={interacting} />
       <Atmosphere radius={1} />
-      <CameraRig controlsRef={controlsRef} />
+      <CameraRig controlsRef={orbitControlsRef} />
       <OrbitControls
-        ref={controlsRef}
+        ref={(instance) => {
+          orbitControlsRef.current = instance;
+        }}
         enablePan={false}
         minDistance={STATION_VIEW_DISTANCE}
         maxDistance={MAX_ORBIT_DISTANCE}

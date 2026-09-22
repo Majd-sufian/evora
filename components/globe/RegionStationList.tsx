@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { Html } from "@react-three/drei";
 import { ChargingStation, StationStatus } from "@/lib/types";
 import { StationCluster } from "@/lib/clustering";
 import { useEvoraStore } from "@/lib/store";
+import { orbitControlsRef } from "@/lib/three/orbitControlsRef";
 
 const STATUS_DOT: Record<StationStatus, string> = {
   available: "bg-green",
@@ -33,18 +35,33 @@ export default function RegionStationList({ cluster, label, stations }: RegionSt
   const ids = new Set(cluster.stationIds);
   const members = stations.filter((s) => ids.has(s.id));
 
+  // Always leaves zoom re-enabled on unmount, regardless of how the list
+  // closed (the close button, picking a station, clicking elsewhere) — a
+  // pointer-leave alone isn't guaranteed to fire before React unmounts this.
+  useEffect(() => {
+    return () => {
+      if (orbitControlsRef.current) orbitControlsRef.current.enableZoom = true;
+    };
+  }, []);
+
   return (
     <Html style={{ pointerEvents: "none" }} zIndexRange={[50, 0]} occlude={false}>
       <div
         className="hud-scanlines w-64 -translate-y-1/2 translate-x-6 overflow-hidden rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] backdrop-blur-sm"
         style={{ pointerEvents: "auto" }}
-        // This overlay sits on top of the R3F canvas, and OrbitControls'
-        // wheel listener is attached natively (not through React's synthetic
-        // event tree) — verified live that scrolling directly over the list
-        // still zoomed the 3D camera and closed it. stopPropagation on the
-        // synthetic event doesn't reliably stop that native listener from
-        // also seeing the event, so the native event is stopped directly.
-        onWheel={(event) => event.nativeEvent.stopImmediatePropagation()}
+        // Scrolling this list's content, even directly over it, was still
+        // reaching OrbitControls and zooming the 3D camera underneath —
+        // verified live that stopping the wheel event's propagation didn't
+        // reliably prevent that (OrbitControls' listener isn't reached via
+        // normal DOM bubbling from this overlay). Disabling the camera's
+        // zoom outright while the pointer is over the list sidesteps the
+        // question of event propagation entirely.
+        onPointerEnter={() => {
+          if (orbitControlsRef.current) orbitControlsRef.current.enableZoom = false;
+        }}
+        onPointerLeave={() => {
+          if (orbitControlsRef.current) orbitControlsRef.current.enableZoom = true;
+        }}
       >
         <div className="flex items-center justify-between gap-2 border-b border-[#7BA3B81A] px-3 py-2">
           <div className="min-w-0">

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import * as THREE from "three";
+import { Html } from "@react-three/drei";
 import { latLonToVector3 } from "@/lib/geo";
 import { useEvoraStore } from "@/lib/store";
 import { MOCK_STATIONS } from "@/lib/data/mockStations";
@@ -78,6 +79,7 @@ export default function RegionClusters() {
   const setSelectedRegionCluster = useEvoraStore((s) => s.setSelectedRegionCluster);
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const ringIconTexture = useMemo(() => getRingIconTexture(), []);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const source = stationsStatus === "ready" && stations.length > 0 ? stations : MOCK_STATIONS;
 
@@ -121,9 +123,11 @@ export default function RegionClusters() {
           onPointerOver={(event) => {
             event.stopPropagation();
             document.body.style.cursor = "pointer";
+            setHoveredId(cluster.id);
           }}
           onPointerOut={() => {
             document.body.style.cursor = "auto";
+            setHoveredId((current) => (current === cluster.id ? null : current));
           }}
         >
           <sprite scale={[cluster.size, cluster.size, 1]}>
@@ -145,6 +149,13 @@ export default function RegionClusters() {
               depthWrite={false}
             />
           </sprite>
+          {hoveredId === cluster.id && selectedRegionCluster?.id !== cluster.id && (
+            <Html style={{ pointerEvents: "none" }} zIndexRange={[40, 0]} occlude={false}>
+              <div className="-translate-x-1/2 -translate-y-[calc(100%+10px)] whitespace-nowrap rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] px-2 py-1 font-mono text-[11px] text-text-primary backdrop-blur-sm">
+                {cluster.label}
+              </div>
+            </Html>
+          )}
           {selectedRegionCluster?.id === cluster.id && (
             <RegionStationList cluster={cluster} label={cluster.label} stations={countryStations} />
           )}

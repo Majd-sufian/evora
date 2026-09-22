@@ -21,8 +21,13 @@ export default function LayerToggle({ label, checked, onChange, note }: LayerTog
           }`}
         >
           <span
-            className={`absolute top-0.5 h-3 w-3 rounded-full bg-bg-primary transition-transform ${
-              checked ? "translate-x-4" : "translate-x-0.5"
+            // `left` is set explicitly (not left as `auto`) — verified live
+            // that without it, the browser computed this absolutely
+            // positioned thumb's static position as 16px instead of 0px,
+            // silently adding 16px on top of both translate values below
+            // and pushing the "on" thumb fully outside the track.
+            className={`absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-bg-primary transition-transform ${
+              checked ? "translate-x-4" : "translate-x-0"
             }`}
           />
         </span>
