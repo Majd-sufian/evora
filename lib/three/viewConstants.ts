@@ -9,7 +9,7 @@ export const WORLD_VIEW_DISTANCE = 2.5;
 // outside the surface while preserving the same relative zoom-in progression
 // (each level ~1.47x closer than the last, matching the spec's ~1.75-1.79x
 // step ratio) rather than reworking the whole scene around a smaller globe.
-export const COUNTRY_VIEW_DISTANCE = 1.7;
+export const COUNTRY_VIEW_DISTANCE = 1.4;
 export const STATION_VIEW_DISTANCE = 1.15;
 
 // Camera kept at the spec'd 2.5-unit distance for World View, angled up just

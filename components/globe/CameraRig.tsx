@@ -43,6 +43,16 @@ export default function CameraRig({
   // Station View restores that exact spot instead of resetting to the
   // default framing every time.
   const lastWorldViewPositionRef = useRef<THREE.Vector3 | null>(null);
+  // Latches for the natural zoom-out checks below, so a single scroll
+  // gesture that overshoots past both thresholds at once (verified live:
+  // a normal scroll can jump the camera from well within Country View to
+  // past the Country->World threshold in one wheel event) triggers only
+  // one back-navigation step instead of two firing across consecutive
+  // frames before the camera visually settles — e.g. closing a region's
+  // station list should never also silently dump the user back to World
+  // View in the same motion.
+  const stationBackLatchRef = useRef(false);
+  const countryBackLatchRef = useRef(false);
 
   useEffect(() => {
     const aspect = size.width / size.height;
@@ -113,10 +123,27 @@ export default function CameraRig({
       const stationToCountryThreshold = ((STATION_VIEW_DISTANCE + COUNTRY_VIEW_DISTANCE) / 2) * fit;
       const countryToWorldThreshold = ((COUNTRY_VIEW_DISTANCE + WORLD_VIEW_DISTANCE) / 2) * fit;
       const distance = camera.position.length();
-      if (viewLevel === "station" && distance > stationToCountryThreshold) {
-        exitStationView();
-      } else if (viewLevel === "country" && distance > countryToWorldThreshold) {
-        goBack();
+      if (viewLevel === "station") {
+        if (distance > stationToCountryThreshold) {
+          if (!stationBackLatchRef.current) {
+            stationBackLatchRef.current = true;
+            exitStationView();
+          }
+        } else {
+          stationBackLatchRef.current = false;
+        }
+      } else if (viewLevel === "country") {
+        if (distance > countryToWorldThreshold) {
+          if (!countryBackLatchRef.current) {
+            countryBackLatchRef.current = true;
+            goBack();
+          }
+        } else {
+          countryBackLatchRef.current = false;
+        }
+      } else {
+        stationBackLatchRef.current = false;
+        countryBackLatchRef.current = false;
       }
     }
   });
