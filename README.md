@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Evora
 
-## Getting Started
+**European EV Intelligence, Live.**
 
-First, run the development server:
+A real-time EV charging intelligence dashboard for Europe, presented as an interactive 3D globe. Explore charging station networks, live electricity grid prices, and carbon intensity across Europe — zooming from a world overview down to individual stations.
+
+## What it does
+
+- **Interactive vector-tile globe** — real OSM map data rendered on a MapLibre GL globe, scoped to Europe.
+- **World → Country → Station drill-down** — smooth cinematic zoom transitions between three view levels, with clustering that adapts to zoom level.
+- **Live charging station data** — real station locations, status, and per-city coverage via the OpenChargeMap API.
+- **Grid price heatmap** — live day-ahead electricity prices per country via the ENTSO-E Transparency Platform.
+- **Carbon intensity overlay** — live grid carbon intensity via Electricity Maps.
+- **Responsive HUD** — network stats, price charts, and station detail panels that adapt to the current view and screen size.
+
+## Tech stack
+
+- [Next.js 14](https://nextjs.org) (App Router)
+- [MapLibre GL](https://maplibre.org) — vector-tile globe rendering
+- [Three.js](https://threejs.org) + [@react-three/fiber](https://docs.pmnd.rs/react-three-fiber) — globe shaders and effects
+- [Zustand](https://github.com/pmndrs/zustand) — state management
+- [Framer Motion](https://www.framer.com/motion) — UI animation
+- Tailwind CSS
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view it.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app integrates with three external APIs. Create a `.env.local` with:
 
-## Learn More
+```bash
+OPENCHARGEMAP_API_KEY=
+ENTSOE_API_TOKEN=
+ELECTRICITYMAPS_API_KEY=
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Project structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/                  Next.js App Router pages
+components/globe/     Three.js globe, camera rig, clustering, markers
+components/maplibre/  MapLibre GL globe + duotone map style
+components/hud/       Overlay panels (network stats, price chart, station detail)
+components/modals/    About modal, etc.
+lib/api/              OpenChargeMap / ENTSO-E / Electricity Maps clients
+lib/clustering.ts     Adaptive city/country clustering
+lib/store.ts          Zustand app state
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Status
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Portfolio project, actively evolving — see [specs/evora-full-context.md](specs/evora-full-context.md) for the full build spec and roadmap.
