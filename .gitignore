@@ -39,6 +39,3 @@ next-env.d.ts
 
 # project specs / reference material (not part of the shipped app)
 /specs/
-
-# large texture assets (fetched separately, not committed)
-/public/textures/
