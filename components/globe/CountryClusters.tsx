@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import * as THREE from "three";
+import { Html } from "@react-three/drei";
 import { latLonToVector3 } from "@/lib/geo";
 import { COUNTRIES } from "@/lib/data/countries";
 import { useEvoraStore } from "@/lib/store";
@@ -33,6 +34,7 @@ export default function CountryClusters() {
   const setViewLevel = useEvoraStore((s) => s.setViewLevel);
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const ringIconTexture = useMemo(() => getRingIconTexture(), []);
+  const [hoveredCode, setHoveredCode] = useState<string | null>(null);
 
   const realCounts = useMemo(() => {
     if (stationsStatus !== "ready") return null;
@@ -96,9 +98,11 @@ export default function CountryClusters() {
           onPointerOver={(event) => {
             event.stopPropagation();
             document.body.style.cursor = "pointer";
+            setHoveredCode(cluster.code);
           }}
           onPointerOut={() => {
             document.body.style.cursor = "auto";
+            setHoveredCode((current) => (current === cluster.code ? null : current));
           }}
         >
           {/* Soft aura behind the badge. */}
@@ -122,6 +126,13 @@ export default function CountryClusters() {
               depthWrite={false}
             />
           </sprite>
+          {hoveredCode === cluster.code && (
+            <Html style={{ pointerEvents: "none" }} zIndexRange={[40, 0]} occlude={false}>
+              <div className="-translate-x-1/2 -translate-y-[calc(100%+10px)] whitespace-nowrap rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] px-2 py-1 font-mono text-[11px] text-text-primary backdrop-blur-sm">
+                {cluster.name}
+              </div>
+            </Html>
+          )}
         </group>
       ))}
     </group>

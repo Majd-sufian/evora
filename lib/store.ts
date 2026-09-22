@@ -7,8 +7,10 @@ type DataStatus = "idle" | "loading" | "ready" | "error";
 type EvoraStore = {
   viewLevel: ViewLevel;
   selectedCountry: string | null;
-  /** The city-scale cluster drilled into from Country View, if any. */
-  selectedCityCluster: StationCluster | null;
+  /** The region-scale cluster drilled into from Country View, if any —
+   * drives the floating scrollable station list (RegionStationList), not a
+   * camera move; viewLevel stays "country" while this is set. */
+  selectedRegionCluster: StationCluster | null;
   selectedStation: ChargingStation | null;
   /** An arbitrary city/address searched via geocoding, not tied to our own data. */
   flyToTarget: { lat: number; lon: number; label: string } | null;
@@ -30,7 +32,7 @@ type EvoraStore = {
 
   setViewLevel: (viewLevel: ViewLevel) => void;
   setSelectedCountry: (code: string | null) => void;
-  setSelectedCityCluster: (cluster: StationCluster | null) => void;
+  setSelectedRegionCluster: (cluster: StationCluster | null) => void;
   setSelectedStation: (station: ChargingStation | null) => void;
   flyTo: (target: { lat: number; lon: number; label: string }) => void;
   setStationPanelOpen: (open: boolean) => void;
@@ -49,7 +51,7 @@ type EvoraStore = {
 export const useEvoraStore = create<EvoraStore>((set, get) => ({
   viewLevel: "world",
   selectedCountry: null,
-  selectedCityCluster: null,
+  selectedRegionCluster: null,
   selectedStation: null,
   flyToTarget: null,
   layers: {
@@ -74,15 +76,15 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   gridPricesUpdatedAt: null,
 
   setViewLevel: (viewLevel) => set({ viewLevel }),
-  setSelectedCountry: (code) => set({ selectedCountry: code }),
-  setSelectedCityCluster: (cluster) => set({ selectedCityCluster: cluster }),
+  setSelectedCountry: (code) => set({ selectedCountry: code, selectedRegionCluster: null }),
+  setSelectedRegionCluster: (cluster) => set({ selectedRegionCluster: cluster }),
   setSelectedStation: (station) => set({ selectedStation: station }),
   setStationPanelOpen: (open) => set({ stationPanelOpen: open }),
   flyTo: (target) =>
     set({
       flyToTarget: target,
       selectedCountry: null,
-      selectedCityCluster: null,
+      selectedRegionCluster: null,
       selectedStation: null,
       stationPanelOpen: false,
       viewLevel: "station",
@@ -114,22 +116,24 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
   },
 
   goBack: () => {
-    const { viewLevel, selectedCountry, selectedCityCluster, selectedStation } = get();
+    const { viewLevel, selectedCountry, selectedRegionCluster } = get();
     if (viewLevel === "station") {
-      if (selectedStation && selectedCityCluster) {
-        // Step back from a single station to the cluster's member list.
-        set({ selectedStation: null, stationPanelOpen: false });
-      } else {
-        set({
-          selectedStation: null,
-          selectedCityCluster: null,
-          flyToTarget: null,
-          stationPanelOpen: false,
-          viewLevel: selectedCountry ? "country" : "world",
-        });
-      }
+      // A station picked from a region's list steps back to that list
+      // (selectedRegionCluster is left as-is); one picked via search
+      // (flyToTarget, no region involved) steps back out to country/world.
+      set({
+        selectedStation: null,
+        flyToTarget: null,
+        stationPanelOpen: false,
+        viewLevel: selectedCountry ? "country" : "world",
+      });
     } else if (viewLevel === "country") {
-      set({ selectedCountry: null, viewLevel: "world" });
+      if (selectedRegionCluster) {
+        // Close the region's station list before leaving Country View.
+        set({ selectedRegionCluster: null });
+      } else {
+        set({ selectedCountry: null, viewLevel: "world" });
+      }
     }
   },
 
@@ -137,7 +141,6 @@ export const useEvoraStore = create<EvoraStore>((set, get) => ({
     const { selectedCountry } = get();
     set({
       selectedStation: null,
-      selectedCityCluster: null,
       flyToTarget: null,
       stationPanelOpen: false,
       viewLevel: selectedCountry ? "country" : "world",

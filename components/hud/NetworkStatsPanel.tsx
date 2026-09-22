@@ -26,7 +26,6 @@ export default function NetworkStatsPanel() {
   const stationsUpdatedAt = useEvoraStore((s) => s.stationsUpdatedAt);
   const viewLevel = useEvoraStore((s) => s.viewLevel);
   const selectedCountry = useEvoraStore((s) => s.selectedCountry);
-  const selectedCityCluster = useEvoraStore((s) => s.selectedCityCluster);
   const selectedStation = useEvoraStore((s) => s.selectedStation);
   const flyToTarget = useEvoraStore((s) => s.flyToTarget);
   const goBack = useEvoraStore((s) => s.goBack);
@@ -55,15 +54,6 @@ export default function NetworkStatsPanel() {
         <BackLink onClick={goBack} label="Back" />
         <StatRow label="Station" value={selectedStation.name} />
         <StatRow label="Status" value={selectedStation.status} />
-      </HudPanel>
-    );
-  }
-
-  if (viewLevel === "station" && selectedCityCluster) {
-    return (
-      <HudPanel title="CLUSTER VIEW">
-        <BackLink onClick={goBack} label="Country View" />
-        <StatRow label="Stations Here" value={String(selectedCityCluster.count)} valueClassName="text-green" />
       </HudPanel>
     );
   }

@@ -41,6 +41,7 @@ type OcmPoi = {
     Latitude: number;
     Longitude: number;
     Town?: string;
+    StateOrProvince?: string;
     AddressLine1?: string;
     Country?: { ISOCode?: string };
   };
@@ -112,6 +113,7 @@ function mapPoiToStation(
     operator: poi.OperatorInfo?.Title ?? (poi.OperatorID ? reference.operatorNames.get(poi.OperatorID) : undefined),
     powerKw: maxPower || undefined,
     address: [addr.AddressLine1, addr.Town].filter(Boolean).join(", ") || undefined,
+    state: addr.StateOrProvince?.trim() || undefined,
     connectorTypes: connectorTypes.length > 0 ? connectorTypes : undefined,
   };
 }

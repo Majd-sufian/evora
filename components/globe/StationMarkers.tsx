@@ -17,14 +17,12 @@ const FAST_CHARGER_MIN_KW = 50;
 // well outside the atmosphere glow shell) for real lat/lon differences of a
 // few hundred meters to a few km to read as visually distinct — at that
 // distance a handful of stations in the same town all project to
-// essentially one screen point. So whenever Station View is showing more
-// than one station as a group (a drilled-into cluster, or several stations
-// near a geocoded search result), they're always arranged on a ring around
-// the group's true centroid instead of at their own real positions — an
-// intentionally inaccurate but always-legible layout, since Station View's
-// job here is letting the user pick one, not convey precise sub-cluster
-// geography (the cluster's own badge in Country View already communicated
-// the aggregate area).
+// essentially one screen point. So several stations near a geocoded search
+// result are arranged on a ring around the group's true centroid instead of
+// at their own real positions — an intentionally inaccurate but
+// always-legible layout. (Region drill-down no longer goes through this —
+// picking a station from a region's list, see RegionStationList, jumps
+// straight to that one real station.)
 const CLUSTER_RING_RADIUS = MARKER_SIZE * 4;
 
 const STATUS_COLOR: Record<StationStatus, string> = {
@@ -46,7 +44,6 @@ export default function StationMarkers() {
   const stations = useEvoraStore((s) => s.stations);
   const stationsStatus = useEvoraStore((s) => s.stationsStatus);
   const viewLevel = useEvoraStore((s) => s.viewLevel);
-  const selectedCityCluster = useEvoraStore((s) => s.selectedCityCluster);
   const selectedStation = useEvoraStore((s) => s.selectedStation);
   const flyToTarget = useEvoraStore((s) => s.flyToTarget);
   const setSelectedStation = useEvoraStore((s) => s.setSelectedStation);
@@ -68,13 +65,6 @@ export default function StationMarkers() {
       return group.map((station, i) => ({ ...station, position: positions[i] }));
     }
 
-    if (selectedCityCluster) {
-      const ids = new Set(selectedCityCluster.stationIds);
-      const members = eligible.filter((s) => ids.has(s.id));
-      const center = latLonToVector3(selectedCityCluster.lat, selectedCityCluster.lon, GLOBE_RADIUS * SURFACE_OFFSET);
-      return ringAround(center, members);
-    }
-
     if (selectedStation) {
       const station = eligible.find((s) => s.id === selectedStation.id);
       if (!station) return [];
@@ -93,7 +83,7 @@ export default function StationMarkers() {
     }
 
     return [];
-  }, [sourceStations, fastChargersOnly, viewLevel, selectedCityCluster, selectedStation, flyToTarget]);
+  }, [sourceStations, fastChargersOnly, viewLevel, selectedStation, flyToTarget]);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;

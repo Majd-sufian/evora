@@ -11,6 +11,11 @@ export type ChargingStation = {
   powerKw?: number;
   address?: string;
   connectorTypes?: string[];
+  /** OpenChargeMap's free-text StateOrProvince field — crowdsourced, often
+   * missing or messy (a city/district name, an abbreviation, a country name,
+   * even unfilled placeholder text). Used as a best-effort region label, not
+   * a reliable administrative boundary; see lib/clustering.ts. */
+  state?: string;
 };
 
 export type ViewLevel = "world" | "country" | "station";
