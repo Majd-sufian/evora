@@ -38,6 +38,13 @@ export default function RegionStationList({ cluster, label, stations }: RegionSt
       <div
         className="hud-scanlines w-64 -translate-y-1/2 translate-x-6 overflow-hidden rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] backdrop-blur-sm"
         style={{ pointerEvents: "auto" }}
+        // This overlay sits on top of the R3F canvas, and OrbitControls'
+        // wheel listener is attached natively (not through React's synthetic
+        // event tree) — verified live that scrolling directly over the list
+        // still zoomed the 3D camera and closed it. stopPropagation on the
+        // synthetic event doesn't reliably stop that native listener from
+        // also seeing the event, so the native event is stopped directly.
+        onWheel={(event) => event.nativeEvent.stopImmediatePropagation()}
       >
         <div className="flex items-center justify-between gap-2 border-b border-[#7BA3B81A] px-3 py-2">
           <div className="min-w-0">
