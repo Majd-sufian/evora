@@ -27,6 +27,41 @@ const parser = new XMLParser({
   isArray: (name) => ["TimeSeries", "Period", "Point"].includes(name),
 });
 
+/** Parses an ISO 8601 duration like "PT15M", "PT30M", "PT60M", "PT1H" into minutes. */
+function resolutionToMinutes(resolution: string | undefined): number {
+  if (!resolution) return 60;
+  const hourMatch = resolution.match(/PT(\d+)H/);
+  if (hourMatch) return Number(hourMatch[1]) * 60;
+  const minuteMatch = resolution.match(/PT(\d+)M/);
+  if (minuteMatch) return Number(minuteMatch[1]);
+  return 60;
+}
+
+/**
+ * Downstream code (getCurrentHourPrice, getSmartChargingRecommendation)
+ * treats array index as hour-of-day directly, assuming one entry per hour.
+ * ENTSO-E's actual publication resolution varies by bidding zone and has
+ * shifted to sub-hourly for several countries — verified live that Germany
+ * currently publishes PT15M (15-minute) data with no PT60M series
+ * available at all, which the old code would have used as-is, producing
+ * indices like 55 that don't correspond to any real hour ("Wait until
+ * 55:00"). Averaging same-hour points down to one value per hour keeps the
+ * "index = hour" contract true regardless of the source resolution.
+ */
+function resampleToHourly(points: EntsoePoint[], resolutionMinutes: number): number[] {
+  if (resolutionMinutes >= 60) {
+    return points.map((p) => Number(p["price.amount"]));
+  }
+  const pointsPerHour = 60 / resolutionMinutes;
+  const hourly: number[] = [];
+  for (let i = 0; i < points.length; i += pointsPerHour) {
+    const group = points.slice(i, i + pointsPerHour);
+    const avg = group.reduce((sum, p) => sum + Number(p["price.amount"]), 0) / group.length;
+    hourly.push(avg);
+  }
+  return hourly;
+}
+
 function formatPeriodTimestamp(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}${pad(
@@ -91,9 +126,8 @@ async function fetchDayAheadPrices(areaCode: string, token: string): Promise<Cou
   }
   if (!chosenPeriod?.Point) return null;
 
-  const hourly = [...chosenPeriod.Point]
-    .sort((a, b) => a.position - b.position)
-    .map((p) => Number(p["price.amount"]));
+  const sortedPoints = [...chosenPeriod.Point].sort((a, b) => a.position - b.position);
+  const hourly = resampleToHourly(sortedPoints, resolutionToMinutes(chosenPeriod.resolution));
 
   if (hourly.length === 0 || hourly.some((v) => Number.isNaN(v))) return null;
 
