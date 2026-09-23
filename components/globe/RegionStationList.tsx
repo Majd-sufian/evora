@@ -47,7 +47,13 @@ export default function RegionStationList({ cluster, label, stations }: RegionSt
   return (
     <Html style={{ pointerEvents: "none" }} zIndexRange={[50, 0]} occlude={false}>
       <div
-        className="hud-scanlines w-64 -translate-y-1/2 translate-x-6 overflow-hidden rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] backdrop-blur-sm"
+        // Below md, a fixed 16rem width anchored to the right of the icon
+        // routinely ran off the edge of a phone-width viewport (verified
+        // live — station names and prices were cut off with no way to
+        // scroll to them). Capped to the viewport width and re-anchored
+        // centered-below instead of right-of-icon there; md: and up
+        // restores the original desktop layout exactly.
+        className="hud-scanlines w-[calc(100vw-2rem)] max-w-64 -translate-x-1/2 translate-y-3 overflow-hidden rounded-sm border border-[#00D4FF33] bg-[#0A1520F2] backdrop-blur-sm md:w-64 md:max-w-none md:translate-x-6 md:translate-y-0 md:-translate-y-1/2"
         style={{ pointerEvents: "auto" }}
         // Scrolling this list's content, even directly over it, was still
         // reaching OrbitControls and zooming the 3D camera underneath —
