@@ -51,7 +51,25 @@ export default function Earth({ onPointerOver, onPointerOut }: EarthProps) {
   const landMask = useLoader(THREE.TextureLoader, "/textures/earth_specular_2048.jpg");
 
   return (
-    <mesh onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
+    <mesh
+      // stopPropagation is required here, not optional — without it, a
+      // pointer ray that hits this opaque surface keeps testing farther
+      // objects along the same ray, including markers on the globe's
+      // hidden side (verified live: hovering the visible globe showed
+      // tooltips for countries actually on the opposite side). Markers on
+      // the near side are unaffected — they sit slightly above this
+      // surface (SURFACE_OFFSET in the marker components), so the ray
+      // reaches them first and their own handler stops propagation before
+      // it ever reaches this mesh.
+      onPointerOver={(event) => {
+        event.stopPropagation();
+        onPointerOver?.();
+      }}
+      onPointerOut={(event) => {
+        event.stopPropagation();
+        onPointerOut?.();
+      }}
+    >
       <sphereGeometry args={[1, 64, 64]} />
       <shaderMaterial
         vertexShader={vertexShader}
