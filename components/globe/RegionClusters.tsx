@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import * as THREE from "three";
+import { useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { latLonToVector3 } from "@/lib/geo";
 import { useEvoraStore } from "@/lib/store";
@@ -31,10 +32,27 @@ const SPREAD_SCALE_FACTOR = 0.008;
 const MAX_SIZE = 0.055;
 const CLUSTER_COLOR = "#00D4FF";
 const FAST_CHARGER_MIN_KW = 50;
+// Matches this app's established mobile breakpoint (MobileBanner.tsx,
+// HudOverlay.tsx). Icons are sized in world units, so they scale with the
+// same perspective projection as the camera-distance fit in
+// viewConstants.ts — but that alone still left icons harder to make out on
+// a phone-size viewport, so this adds a direct boost on top rather than
+// relying only on the indirect effect of sitting closer to the globe.
+const MOBILE_BREAKPOINT_PX = 768;
+const MOBILE_SIZE_MULTIPLIER = 1.35;
 
-function rawClusterSize(count: number, spreadDegrees: number) {
-  return MIN_ICON_SIZE + Math.sqrt(count) * SIZE_SCALE_FACTOR + spreadDegrees * SPREAD_SCALE_FACTOR;
+function rawClusterSize(count: number, spreadDegrees: number, minIconSize: number) {
+  return minIconSize + Math.sqrt(count) * SIZE_SCALE_FACTOR + spreadDegrees * SPREAD_SCALE_FACTOR;
 }
+
+// The overlap-avoidance cap (nearestNeighborDistance / OVERLAP_MARGIN,
+// further down) is a physical constraint — it doesn't change on mobile,
+// since it's derived from real distances between regions, not screen size.
+// Only the floor and ceiling this raw size is clamped between get scaled,
+// so a tight country still respects the same anti-overlap cap it would on
+// desktop; it just doesn't shrink below the new, larger mobile floor —
+// the same tradeoff already accepted for desktop's tightest countries,
+// just scaled up.
 
 // A region's real geographic position can be closer to a neighboring
 // region's than either icon's own footprint at the sizes above — no amount
@@ -80,6 +98,10 @@ export default function RegionClusters() {
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const ringIconTexture = useMemo(() => getRingIconTexture(), []);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const viewportWidth = useThree((s) => s.size.width);
+  const sizeMultiplier = viewportWidth < MOBILE_BREAKPOINT_PX ? MOBILE_SIZE_MULTIPLIER : 1;
+  const minIconSize = MIN_ICON_SIZE * sizeMultiplier;
+  const maxSize = MAX_SIZE * sizeMultiplier;
 
   const source = stationsStatus === "ready" && stations.length > 0 ? stations : MOCK_STATIONS;
 
@@ -100,13 +122,13 @@ export default function RegionClusters() {
     const positions = withPosition.map((c) => c.position);
     return withPosition.map((cluster, i) => {
       const nearestDist = positions.length > 1 ? nearestNeighborDistance(positions, i) : Infinity;
-      const sizeCap = nearestDist === Infinity ? MAX_SIZE : Math.max(nearestDist / OVERLAP_MARGIN, MIN_ICON_SIZE);
+      const sizeCap = nearestDist === Infinity ? maxSize : Math.max(nearestDist / OVERLAP_MARGIN, minIconSize);
       return {
         ...cluster,
-        size: Math.min(rawClusterSize(cluster.count, cluster.spreadDegrees), MAX_SIZE, sizeCap),
+        size: Math.min(rawClusterSize(cluster.count, cluster.spreadDegrees, minIconSize), maxSize, sizeCap),
       };
     });
-  }, [countryStations]);
+  }, [countryStations, minIconSize, maxSize]);
 
   if (viewLevel !== "country") return null;
 

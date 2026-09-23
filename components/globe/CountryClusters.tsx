@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import * as THREE from "three";
+import { useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { latLonToVector3 } from "@/lib/geo";
 import { COUNTRIES } from "@/lib/data/countries";
@@ -15,9 +16,16 @@ const SURFACE_OFFSET = 1.015;
 const MIN_GLOW_SIZE = 0.05;
 const GLOW_SCALE_FACTOR = 0.0022;
 const DEFAULT_CLUSTER_COLOR = "#00D4FF";
+// Matches this app's established mobile breakpoint (MobileBanner.tsx,
+// HudOverlay.tsx) — country badges were still hard to make out on a
+// phone-size viewport even after the camera sits closer there (see
+// aspectDistanceMultiplier in viewConstants.ts), so this adds a direct
+// size boost on top, same approach as RegionClusters.tsx.
+const MOBILE_BREAKPOINT_PX = 768;
+const MOBILE_SIZE_MULTIPLIER = 1.35;
 
-function glowSize(stationCount: number) {
-  return MIN_GLOW_SIZE + Math.sqrt(stationCount) * GLOW_SCALE_FACTOR;
+function glowSize(stationCount: number, sizeMultiplier: number) {
+  return (MIN_GLOW_SIZE + Math.sqrt(stationCount) * GLOW_SCALE_FACTOR) * sizeMultiplier;
 }
 
 export default function CountryClusters() {
@@ -35,6 +43,8 @@ export default function CountryClusters() {
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const ringIconTexture = useMemo(() => getRingIconTexture(), []);
   const [hoveredCode, setHoveredCode] = useState<string | null>(null);
+  const viewportWidth = useThree((s) => s.size.width);
+  const sizeMultiplier = viewportWidth < MOBILE_BREAKPOINT_PX ? MOBILE_SIZE_MULTIPLIER : 1;
 
   const realCounts = useMemo(() => {
     if (stationsStatus !== "ready") return null;
@@ -63,12 +73,13 @@ export default function CountryClusters() {
         return {
           ...country,
           position: latLonToVector3(country.lat, country.lon, GLOBE_RADIUS * SURFACE_OFFSET),
-          size: glowSize(count),
+          size: glowSize(count, sizeMultiplier),
           color,
         };
       }),
     [
       realCounts,
+      sizeMultiplier,
       carbonLayerOn,
       carbonStatus,
       carbonIntensityByCountry,
