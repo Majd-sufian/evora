@@ -23,7 +23,7 @@ const FAST_CHARGER_MIN_KW = 50;
 // always-legible layout. (Region drill-down no longer goes through this —
 // picking a station from a region's list, see RegionStationList, jumps
 // straight to that one real station.)
-const CLUSTER_RING_RADIUS = MARKER_SIZE * 1;
+const CLUSTER_RING_RADIUS = MARKER_SIZE * 4;
 
 const STATUS_COLOR: Record<StationStatus, string> = {
   available: "#00FF88",
