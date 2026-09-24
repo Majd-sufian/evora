@@ -4,7 +4,6 @@ import PriceChartPanel from "./PriceChartPanel";
 import ActivityChartPanel from "./ActivityChartPanel";
 import CarbonLegend from "./CarbonLegend";
 import GridPriceLegend from "./GridPriceLegend";
-import SearchBar from "./SearchBar";
 import MobileBanner from "./MobileBanner";
 import LayerControl from "@/components/map/LayerControl";
 
@@ -13,13 +12,11 @@ export default function HudOverlay() {
     <div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-3 overflow-y-auto py-3 pl-20 pr-3 md:gap-4 md:py-6 md:pl-24 md:pr-6 lg:pl-[88px]">
       <MobileBanner />
 
-      {/* Mobile-only (<768px): search + the layer control sit together right
-          under the banner, near the top where the panel always has room to
-          open downward; Network Stats is pushed to the bottom below. */}
+      {/* Mobile-only (<768px): the layer control sits right under the
+          banner, near the top where the panel always has room to open
+          downward; Network Stats is pushed to the bottom below. Search is
+          temporarily disabled — see SearchBar.tsx. */}
       <div className="flex w-full items-center justify-center gap-2 md:hidden">
-        <div className="pointer-events-auto min-w-0 flex-1">
-          <SearchBar />
-        </div>
         <div className="pointer-events-auto shrink-0">
           <LayerControl />
         </div>
@@ -27,13 +24,11 @@ export default function HudOverlay() {
 
       {/* Tablet/desktop (768px+): original side-by-side row, with the layer
           control stacked below the monitor panel instead of floating alone
-          in the empty space below — keeps it near the top HUD cluster. */}
+          in the empty space below — keeps it near the top HUD cluster.
+          Search is temporarily disabled — see SearchBar.tsx. */}
       <div className="hidden md:flex md:flex-row md:items-start md:justify-between md:gap-4">
         <div className="pointer-events-auto md:w-56 lg:w-64">
           <NetworkStatsPanel />
-        </div>
-        <div className="pointer-events-auto flex md:w-auto md:flex-1 md:justify-center">
-          <SearchBar />
         </div>
         <div className="flex flex-col items-end gap-2 md:w-56 lg:w-64">
           <div className="pointer-events-auto w-full">
